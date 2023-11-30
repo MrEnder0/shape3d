@@ -1,45 +1,11 @@
+mod utils;
+
 use eframe::{
     egui,
     epaint::{Pos2, Vec2},
 };
 use std::sync::Mutex;
-
-struct Cube {
-    points: [Point; 8],
-}
-
-struct Cube2D {
-    points: [Point2D; 8],
-}
-
-struct Point {
-    x: f64,
-    y: f64,
-    z: f64,
-}
-
-struct Point2D {
-    x: f64,
-    y: f64,
-}
-
-impl Clone for Cube {
-    fn clone(&self) -> Self {
-        Cube {
-            points: self.points.clone(),
-        }
-    }
-}
-
-impl Clone for Point {
-    fn clone(&self) -> Self {
-        Point {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-        }
-    }
-}
+use utils::{base_shapes::*, structs::*};
 
 static SCREEN_CUBE: Mutex<Cube> = Mutex::new(Cube {
     points: [
@@ -85,51 +51,6 @@ static SCREEN_CUBE: Mutex<Cube> = Mutex::new(Cube {
         },
     ],
 });
-
-const BASE_CUBE: Cube = Cube {
-    points: [
-        Point {
-            x: -1.0,
-            y: -1.0,
-            z: 1.0,
-        },
-        Point {
-            x: 1.0,
-            y: -1.0,
-            z: 1.0,
-        },
-        Point {
-            x: 1.0,
-            y: 1.0,
-            z: 1.0,
-        },
-        Point {
-            x: -1.0,
-            y: 1.0,
-            z: 1.0,
-        },
-        Point {
-            x: -1.0,
-            y: -1.0,
-            z: -1.0,
-        },
-        Point {
-            x: 1.0,
-            y: -1.0,
-            z: -1.0,
-        },
-        Point {
-            x: 1.0,
-            y: 1.0,
-            z: -1.0,
-        },
-        Point {
-            x: -1.0,
-            y: 1.0,
-            z: -1.0,
-        },
-    ],
-};
 
 const Z_OFFSET: f64 = -4.0;
 const CUBE_SIZE: f64 = 70.0;
