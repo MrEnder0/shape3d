@@ -63,7 +63,7 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "3D Cube",
         options,
-        Box::new(|cc| {
+        Box::new(|_cc| {
             // This gives us image support:
             Box::<MyApp>::default()
         }),
@@ -84,11 +84,13 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.rotation += 1.0;
 
-        let points = calc_points(self.rotation);
+        let mut points = calc_points(self.rotation).points;
+
+        points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            for (i, point) in points.points.iter().enumerate() {
-                let color = match i {
+            for (i, point) in points.iter().enumerate() {
+                /*let color = match i {
                     0 => egui::Color32::from_rgb(255, 0, 0),
                     1 => egui::Color32::from_rgb(0, 255, 0),
                     2 => egui::Color32::from_rgb(0, 0, 255),
@@ -98,6 +100,12 @@ impl eframe::App for MyApp {
                     6 => egui::Color32::from_rgb(255, 255, 255),
                     7 => egui::Color32::from_rgb(0, 0, 0),
                     _ => egui::Color32::from_rgb(0, 0, 0),
+                };*/
+
+                let color = if points[i].z > -4.8 {
+                    egui::Color32::from_rgb(0, 255, 0)
+                } else {
+                    egui::Color32::from_rgb(255, 0, 0)
                 };
 
                 ui.painter().rect_filled(
@@ -113,20 +121,13 @@ impl eframe::App for MyApp {
                 );
             }
         });
+
+        std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }
 
-fn calc_points(rotation: f64) -> Cube2D {
-    let mut projected_cube: [Point2D; 8] = [
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-        Point2D { x: 0.0, y: 0.0 },
-    ];
+fn calc_points(rotation: f64) -> Cube {
+    let mut projected_cube: Cube = Default::default();
 
     let binding = &SCREEN_CUBE;
 
@@ -134,20 +135,22 @@ fn calc_points(rotation: f64) -> Cube2D {
 
     for (i, _point) in itter_clone.iter().enumerate() {
         let mut guard = binding.lock().unwrap();
-        guard.points[i].x = BASE_CUBE.points[i].x * rad(rotation).cos() - BASE_CUBE.points[i].z * rad(rotation).sin();
+        guard.points[i].x = BASE_CUBE.points[i].x * rad(rotation).cos()
+            - BASE_CUBE.points[i].z * rad(rotation).sin();
         guard.points[i].y = BASE_CUBE.points[i].y;
-        guard.points[i].z = BASE_CUBE.points[i].x * rad(rotation).sin() + BASE_CUBE.points[i].z * rad(rotation).cos() + Z_OFFSET;
+        guard.points[i].z = BASE_CUBE.points[i].x * rad(rotation).sin()
+            + BASE_CUBE.points[i].z * rad(rotation).cos()
+            + Z_OFFSET;
         drop(guard);
 
         let screen_cube = SCREEN_CUBE.lock().unwrap();
-        projected_cube[i].x =
-            (screen_cube.points[i].x / screen_cube.points[i].z * CUBE_SIZE).round();
-        projected_cube[i].y =
-            (screen_cube.points[i].y / screen_cube.points[i].z * CUBE_SIZE).round();
+        projected_cube.points[i].x = screen_cube.points[i].x / screen_cube.points[i].z * CUBE_SIZE;
+        projected_cube.points[i].y = screen_cube.points[i].y / screen_cube.points[i].z * CUBE_SIZE;
+        projected_cube.points[i].z = screen_cube.points[i].z;
     }
 
-    Cube2D {
-        points: projected_cube,
+    Cube {
+        points: projected_cube.points,
     }
 }
 
