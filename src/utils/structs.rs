@@ -2,25 +2,65 @@ pub struct Cube {
     pub points: [Point; 8],
 }
 
-pub struct Cube2D {
-    pub points: [Point2D; 8],
-}
-
 pub struct Point {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 
-pub struct Point2D {
-    pub x: f64,
-    pub y: f64,
-}
-
 impl Clone for Cube {
     fn clone(&self) -> Self {
         Cube {
             points: self.points.clone(),
+        }
+    }
+}
+
+impl Default for Cube {
+    fn default() -> Self {
+        Cube {
+            points: [
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+            ],
         }
     }
 }
@@ -32,5 +72,11 @@ impl Clone for Point {
             y: self.y,
             z: self.z,
         }
+    }
+}
+
+impl PartialEq for Point {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y && self.z == other.z
     }
 }
