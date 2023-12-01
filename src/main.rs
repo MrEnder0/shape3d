@@ -13,41 +13,49 @@ static SCREEN_CUBE: Mutex<Cube> = Mutex::new(Cube {
             x: 0.0,
             y: 0.0,
             z: 0.0,
+            id: 0,
         },
         Point {
             x: 0.0,
             y: 0.0,
             z: 1.0,
+            id: 1,
         },
         Point {
             x: 0.0,
             y: 1.0,
             z: 0.0,
+            id: 2,
         },
         Point {
             x: 0.0,
             y: 1.0,
             z: 1.0,
+            id: 3,
         },
         Point {
             x: 1.0,
             y: 0.0,
             z: 0.0,
+            id: 4,
         },
         Point {
             x: 1.0,
             y: 0.0,
             z: 1.0,
+            id: 5,
         },
         Point {
             x: 1.0,
             y: 1.0,
             z: 0.0,
+            id: 6,
         },
         Point {
             x: 1.0,
             y: 1.0,
             z: 1.0,
+            id: 7,
         },
     ],
 });
@@ -63,10 +71,7 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "3D Cube",
         options,
-        Box::new(|_cc| {
-            // This gives us image support:
-            Box::<MyApp>::default()
-        }),
+        Box::new(|_cc| Box::<MyApp>::default()),
     )
 }
 
@@ -90,7 +95,7 @@ impl eframe::App for MyApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             for (i, point) in points.iter().enumerate() {
-                /*let color = match i {
+                let color = match point.id {
                     0 => egui::Color32::from_rgb(255, 0, 0),
                     1 => egui::Color32::from_rgb(0, 255, 0),
                     2 => egui::Color32::from_rgb(0, 0, 255),
@@ -100,13 +105,35 @@ impl eframe::App for MyApp {
                     6 => egui::Color32::from_rgb(255, 255, 255),
                     7 => egui::Color32::from_rgb(0, 0, 0),
                     _ => egui::Color32::from_rgb(0, 0, 0),
-                };*/
+                };
 
+                // Is visible to the camera
                 let color = if points[i].z > -4.8 {
                     egui::Color32::from_rgb(0, 255, 0)
                 } else {
                     egui::Color32::from_rgb(255, 0, 0)
                 };
+
+                // Draws lines between points
+                /*let point1 = points.iter().enumerate().find(|(_i, p)| p.id == point.id).unwrap().0;
+                let point2 = match points.iter().enumerate().find(|(_i, p)| p.id == point.id + 1) {
+                    Some(i) => i.0,
+                    None => points.iter().enumerate().find(|(_i, p)| p.id == 0).unwrap().0,
+                };
+
+                ui.painter().line_segment(
+                    [
+                        Pos2 {
+                            x: points[point1].x as f32 + 155.0,
+                            y: points[point1].y as f32 + 105.0,
+                        },
+                        Pos2 {
+                            x: points[point2].x as f32 + 155.0,
+                            y: points[point2].y as f32 + 105.0,
+                        },
+                    ],
+                    Stroke::new(1.0, color),
+                );*/
 
                 ui.painter().rect_filled(
                     egui::Rect::from_min_size(
