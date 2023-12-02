@@ -311,7 +311,6 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, render_color: egui::Color32) {
     let points = shape.points.clone();
 
     for connection in shape.connections.iter() {
-        // Find the index of the point with the id of point1
         let point1 = points
             .iter()
             .enumerate()
@@ -319,8 +318,6 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, render_color: egui::Color32) {
             .unwrap()
             .0;
 
-
-        // Find the point with the id of point2
         let point2 = points
             .iter()
             .enumerate()
