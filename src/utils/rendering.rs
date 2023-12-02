@@ -1,9 +1,12 @@
-use eframe::{egui::{Ui, self}, epaint::{Pos2, Stroke}};
+use eframe::{
+    egui::{self, Ui},
+    epaint::{Pos2, Stroke},
+};
 
-use super::structs::Cube;
+use super::structs::Shape;
 
-pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Color32) {
-    let points = cube.points.clone();
+/*pub fn render_lines(ui: &mut Ui, id: usize, shape: &Shape, render_color: egui::Color32) {
+    let points = shape.points.clone();
 
     let point0 = points
         .iter()
@@ -35,8 +38,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -67,8 +71,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -99,8 +104,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -131,8 +137,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -163,8 +170,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -195,8 +203,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -227,8 +236,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -259,8 +269,9 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
             render_corner(
                 ui,
-                &Cube {
+                &Shape {
                     points: points.clone(),
+                    connections: Box::new([]),
                 },
                 point0,
                 vec![point1, point2, point3],
@@ -273,7 +284,7 @@ pub fn render_lines(ui: &mut Ui, id: usize, cube: &Cube, render_color: egui::Col
 
 fn render_corner(
     ui: &mut Ui,
-    cube: &Cube,
+    shape: &Shape,
     base_point: usize,
     child_points: Vec<usize>,
     render_color: egui::Color32,
@@ -282,12 +293,50 @@ fn render_corner(
         ui.painter().line_segment(
             [
                 Pos2 {
-                    x: cube.points[base_point].x as f32 + 335.0,
-                    y: cube.points[base_point].y as f32 + 110.0,
+                    x: shape.points[base_point].x as f32 + 335.0,
+                    y: shape.points[base_point].y as f32 + 110.0,
                 },
                 Pos2 {
-                    x: cube.points[point].x as f32 + 335.0,
-                    y: cube.points[point].y as f32 + 110.0,
+                    x: shape.points[point].x as f32 + 335.0,
+                    y: shape.points[point].y as f32 + 110.0,
+                },
+            ],
+            Stroke::new(1.0, render_color),
+        );
+    }
+}
+*/
+
+pub fn render_lines(ui: &mut Ui, shape: &Shape, render_color: egui::Color32) {
+    let points = shape.points.clone();
+
+    for connection in shape.connections.iter() {
+        // Find the index of the point with the id of point1
+        let point1 = points
+            .iter()
+            .enumerate()
+            .find(|(_i, p)| p.id == connection.point1)
+            .unwrap()
+            .0;
+
+
+        // Find the point with the id of point2
+        let point2 = points
+            .iter()
+            .enumerate()
+            .find(|(_i, p)| p.id == connection.point2)
+            .unwrap()
+            .0;
+
+        ui.painter().line_segment(
+            [
+                Pos2 {
+                    x: points[point1].x as f32 + 335.0,
+                    y: points[point1].y as f32 + 110.0,
+                },
+                Pos2 {
+                    x: points[point2].x as f32 + 335.0,
+                    y: points[point2].y as f32 + 110.0,
                 },
             ],
             Stroke::new(1.0, render_color),

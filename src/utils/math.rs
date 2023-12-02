@@ -1,33 +1,30 @@
-use crate::{SCREEN_CUBE, Z_OFFSET, CUBE_SIZE};
+use crate::{SHAPE_SIZE, Z_OFFSET};
 
-use super::{structs::Cube, base_shapes::BASE_CUBE};
+use super::structs::Shape;
 
-pub fn calc_points(rotation: f64) -> Cube {
-    let mut projected_cube: Cube = Default::default();
+pub fn calc_points(screen_shape: &mut Shape, rotation: f64, base_shape: Shape) -> (Shape, Shape) {
+    let mut projected_shape: Shape = base_shape.clone();
 
-    let binding = &SCREEN_CUBE;
-
-    let itter_clone = binding.lock().unwrap().points.clone();
+    let itter_clone = screen_shape.points.clone();
 
     for (i, _point) in itter_clone.iter().enumerate() {
-        let mut guard = binding.lock().unwrap();
-        guard.points[i].x = BASE_CUBE.points[i].x * rad(rotation).cos()
-            - BASE_CUBE.points[i].z * rad(rotation).sin();
-        guard.points[i].y = BASE_CUBE.points[i].y;
-        guard.points[i].z = BASE_CUBE.points[i].x * rad(rotation).sin()
-            + BASE_CUBE.points[i].z * rad(rotation).cos()
+        screen_shape.points[i].x = base_shape.points[i].x * rad(rotation).cos()
+            - base_shape.points[i].z * rad(rotation).sin();
+        screen_shape.points[i].y = base_shape.points[i].y;
+        screen_shape.points[i].z = base_shape.points[i].x * rad(rotation).sin()
+            + base_shape.points[i].z * rad(rotation).cos()
             + Z_OFFSET;
-        drop(guard);
 
-        let screen_cube = SCREEN_CUBE.lock().unwrap();
-        projected_cube.points[i].x = screen_cube.points[i].x / screen_cube.points[i].z * CUBE_SIZE;
-        projected_cube.points[i].y = screen_cube.points[i].y / screen_cube.points[i].z * CUBE_SIZE;
-        projected_cube.points[i].z = screen_cube.points[i].z;
+        projected_shape.points[i].x =
+            screen_shape.points[i].x / screen_shape.points[i].z * SHAPE_SIZE;
+        projected_shape.points[i].y =
+            screen_shape.points[i].y / screen_shape.points[i].z * SHAPE_SIZE;
+        projected_shape.points[i].z = screen_shape.points[i].z;
     }
 
-    Cube {
-        points: projected_cube.points,
-    }
+    projected_shape.connections = base_shape.connections.clone();
+
+    (screen_shape.clone(), projected_shape)
 }
 
 fn rad(deg: f64) -> f64 {
