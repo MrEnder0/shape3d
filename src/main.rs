@@ -2,10 +2,10 @@ mod utils;
 
 use eframe::{
     egui,
-    epaint::{Pos2, Stroke, Vec2},
+    epaint::{Pos2, Vec2},
 };
 use std::sync::Mutex;
-use utils::{base_shapes::*, structs::*};
+use utils::{structs::*, math::calc_points, rendering::render_lines};
 
 static SCREEN_CUBE: Mutex<Cube> = Mutex::new(Cube {
     points: [
@@ -133,7 +133,12 @@ impl eframe::App for MyApp {
                             egui::Color32::from_rgb(255, 0, 0)
                         }
                     }
-                    _ => egui::Color32::from_rgb(0, 0, 0),
+                    2 => if point.z > -4.8 {
+                        egui::Color32::from_rgb(255, 255, 255)
+                    } else {
+                        egui::Rgba::TRANSPARENT.into()
+                    },
+                    _ => egui::Rgba::TRANSPARENT.into(),
                 };
 
                 match self.render_mode {
@@ -151,77 +156,23 @@ impl eframe::App for MyApp {
                         );
                     }
                     1 => {
-                        let point1 = points
-                            .iter()
-                            .enumerate()
-                            .find(|(_i, p)| p.id == point.id)
-                            .unwrap()
-                            .0;
-                        let point2 = match points
-                            .iter()
-                            .enumerate()
-                            .find(|(_i, p)| p.id == point.id + 1)
-                        {
-                            Some(i) => i.0,
-                            None => {
-                                points
-                                    .iter()
-                                    .enumerate()
-                                    .find(|(_i, p)| p.id == 0)
-                                    .unwrap()
-                                    .0
-                            }
-                        };
-
-                        ui.painter().line_segment(
-                            [
-                                Pos2 {
-                                    x: points[point1].x as f32 + 330.0,
-                                    y: points[point1].y as f32 + 105.0,
-                                },
-                                Pos2 {
-                                    x: points[point2].x as f32 + 330.0,
-                                    y: points[point2].y as f32 + 105.0,
-                                },
-                            ],
-                            Stroke::new(1.0, color),
+                        render_lines(
+                            ui,
+                            point.id,
+                            &Cube {
+                                points: points.clone(),
+                            },
+                            color
                         );
                     }
                     2 => {
-                        let point1 = points
-                            .iter()
-                            .enumerate()
-                            .find(|(_i, p)| p.id == point.id)
-                            .unwrap()
-                            .0;
-                        let point2 = match points
-                            .iter()
-                            .enumerate()
-                            .find(|(_i, p)| p.id == point.id + 1)
-                        {
-                            Some(i) => i.0,
-                            None => {
-                                points
-                                    .iter()
-                                    .enumerate()
-                                    .find(|(_i, p)| p.id == 0)
-                                    .unwrap()
-                                    .0
-                            }
-                        };
-
-                        ui.painter().line_segment(
-                            [
-                                Pos2 {
-                                    x: points[point1].x as f32 + 330.0,
-                                    y: points[point1].y as f32 + 105.0,
-                                },
-                                Pos2 {
-                                    x: points[point2].x as f32 + 330.0,
-                                    y: points[point2].y as f32 + 105.0,
-                                },
-                            ],
-                            Stroke::new(1.0, color),
+                        render_lines(
+                            ui,
+                            point.id,
+                            &Cube {
+                                points: points.clone(),
+                            },
+                            color
                         );
 
                         ui.painter().rect_filled(
@@ -245,7 +196,7 @@ impl eframe::App for MyApp {
         egui::Window::new("3D Cube").show(ctx, |ui| {
             ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
-            ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
+            ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
 
             if reverse_button.clicked() {
@@ -256,36 +207,4 @@ impl eframe::App for MyApp {
         std::thread::sleep(std::time::Duration::from_millis(10));
         ctx.request_repaint()
     }
-}
-
-fn calc_points(rotation: f64) -> Cube {
-    let mut projected_cube: Cube = Default::default();
-
-    let binding = &SCREEN_CUBE;
-
-    let itter_clone = binding.lock().unwrap().points.clone();
-
-    for (i, _point) in itter_clone.iter().enumerate() {
-        let mut guard = binding.lock().unwrap();
-        guard.points[i].x = BASE_CUBE.points[i].x * rad(rotation).cos()
-            - BASE_CUBE.points[i].z * rad(rotation).sin();
-        guard.points[i].y = BASE_CUBE.points[i].y;
-        guard.points[i].z = BASE_CUBE.points[i].x * rad(rotation).sin()
-            + BASE_CUBE.points[i].z * rad(rotation).cos()
-            + Z_OFFSET;
-        drop(guard);
-
-        let screen_cube = SCREEN_CUBE.lock().unwrap();
-        projected_cube.points[i].x = screen_cube.points[i].x / screen_cube.points[i].z * CUBE_SIZE;
-        projected_cube.points[i].y = screen_cube.points[i].y / screen_cube.points[i].z * CUBE_SIZE;
-        projected_cube.points[i].z = screen_cube.points[i].z;
-    }
-
-    Cube {
-        points: projected_cube.points,
-    }
-}
-
-fn rad(deg: f64) -> f64 {
-    deg * std::f32::consts::PI as f64 / 180.0
 }
