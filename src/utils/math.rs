@@ -8,12 +8,9 @@ pub fn calc_points(screen_shape: &mut Shape, rotation: f64, base_shape: Shape) -
     let itter_clone = screen_shape.points.clone();
 
     for (i, _point) in itter_clone.iter().enumerate() {
-        screen_shape.points[i].x = base_shape.points[i].x * rad(rotation).cos()
-            - base_shape.points[i].z * rad(rotation).sin();
+        screen_shape.points[i].x = base_shape.points[i].x * rad(rotation).cos() - base_shape.points[i].z * rad(rotation).sin();
         screen_shape.points[i].y = base_shape.points[i].y;
-        screen_shape.points[i].z = base_shape.points[i].x * rad(rotation).sin()
-            + base_shape.points[i].z * rad(rotation).cos()
-            + Z_OFFSET;
+        screen_shape.points[i].z = base_shape.points[i].x * rad(rotation).sin() + base_shape.points[i].z * rad(rotation).cos() + Z_OFFSET;
 
         projected_shape.points[i].x =
             screen_shape.points[i].x / screen_shape.points[i].z * SHAPE_SIZE;
