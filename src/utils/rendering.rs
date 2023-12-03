@@ -3,7 +3,7 @@ use eframe::{
     epaint::{Pos2, Stroke},
 };
 
-use super::{structs::Shape, colors::id_to_color};
+use super::{structs::Shape, colors::{id_to_color, mix_colors}};
 
 pub fn render_lines(ui: &mut Ui, shape: &Shape) {
     let points = shape.points.clone();
@@ -24,7 +24,7 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape) {
             .unwrap()
             .0;
 
-        let render_color = id_to_color(points[point1].id);
+        let render_color = mix_colors(id_to_color(points[point1].id), id_to_color(points[point2].id));
 
         ui.painter().line_segment(
             [
