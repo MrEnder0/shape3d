@@ -1,8 +1,8 @@
 use crate::{SHAPE_SIZE, Z_OFFSET};
 
-use super::structs::Shape;
+use super::structs::{Shape, Point};
 
-pub fn calc_points(screen_shape: &mut Shape, rotation: f64, base_shape: Shape) -> (Shape, Shape) {
+pub fn calc_points_pos(screen_shape: &mut Shape, rotation: f64, base_shape: Shape) -> (Shape, Shape) {
     let mut projected_shape: Shape = base_shape.clone();
 
     let itter_clone = screen_shape.points.clone();

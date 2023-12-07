@@ -14,10 +14,20 @@ pub fn id_to_color(id: usize) -> egui::Color32 {
     }
 }
 
-pub fn mix_colors(color1: egui::Color32, color2: egui::Color32) -> egui::Color32 {
+pub fn mix_colors(colors: Vec<egui::Color32>) -> egui::Color32 {
+    let mut r = 0;
+    let mut g = 0;
+    let mut b = 0;
+
+    for color in colors.iter() {
+        r += color.r();
+        g += color.g();
+        b += color.b();
+    }
+
     egui::Color32::from_rgb(
-        (color1.r() as f32 + color2.r() as f32) as u8 / 2,
-        (color1.g() as f32 + color2.g() as f32) as u8 / 2,
-        (color1.b() as f32 + color2.b() as f32) as u8 / 2,
+        r / colors.len() as u8,
+        g / colors.len() as u8,
+        b / colors.len() as u8,
     )
 }

@@ -4,7 +4,7 @@ use eframe::{
     egui,
     epaint::{Pos2, Vec2},
 };
-use utils::{base_shapes::*, math::calc_points, rendering::render_lines, structs::*, colors::id_to_color};
+use utils::{base_shapes::*, math::calc_points_pos, rendering::{render_lines, render_sides}, structs::*, colors::id_to_color};
 
 const Z_OFFSET: f64 = -4.0;
 const SHAPE_SIZE: f64 = 120.0;
@@ -25,6 +25,8 @@ struct MyApp {
     render_mode: u8,
     base_shape: Shape,
     base_shape_index: usize,
+    experiment_1: bool,
+    render_cords: bool,
 }
 
 impl Default for MyApp {
@@ -37,6 +39,8 @@ impl Default for MyApp {
             render_mode: 0,
             base_shape: base_cube(),
             base_shape_index: 0,
+            experiment_1: false,
+            render_cords: false,
         }
     }
 }
@@ -60,15 +64,15 @@ impl eframe::App for MyApp {
             }
         }
 
-        let shape_calcs = calc_points(
+        let shape_pos_calcs = calc_points_pos(
             &mut self.screen_shape,
             self.rotation,
             self.base_shape.clone(),
         );
 
-        self.screen_shape = shape_calcs.0;
-        let mut points = shape_calcs.1.points.clone();
-        let connections = shape_calcs.1.connections.clone();
+        self.screen_shape = shape_pos_calcs.0;
+        let mut points = shape_pos_calcs.1.points.clone();
+        let connections = shape_pos_calcs.1.connections.clone();
 
         points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
@@ -107,7 +111,7 @@ impl eframe::App for MyApp {
                             10.0,
                             color,
                         );
-                }
+                    }
             }
 
             if self.render_mode == 1 || self.render_mode == 2 {
@@ -119,6 +123,27 @@ impl eframe::App for MyApp {
                     }
                 );
             }
+
+            if self.experiment_1 {
+                render_sides(
+                    ui,
+                    &Shape {
+                        points: points.clone(),
+                        connections: connections.clone(),
+                    }
+                );
+            }
+
+            if self.render_cords {
+                ui.label("Note: These are transformed cords with original z-axis values");
+
+                let mut points_clone = points.clone();
+                points_clone.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
+
+                for point in points_clone.iter() {
+                    ui.label(format!("ID:{}, x:{}, y:{}, z:{}", point.id, point.x.round(), point.y.round(), point.z.round()));
+                }
+            }
         });
 
         // Render ui with sliders
@@ -127,6 +152,8 @@ impl eframe::App for MyApp {
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
+            let experiment_1_button = ui.add(egui::Button::new("Experiment #1"));
+            let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
             // Add slider for base shape
             ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
@@ -149,6 +176,14 @@ impl eframe::App for MyApp {
 
             if reverse_button.clicked() {
                 self.rotation_direction = !self.rotation_direction;
+            }
+
+            if experiment_1_button.clicked() {
+                self.experiment_1 = !self.experiment_1;
+            }
+
+            if render_cords_button.clicked() {
+                self.render_cords = !self.render_cords;
             }
         });
 
