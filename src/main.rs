@@ -4,14 +4,11 @@ use eframe::{
     egui,
     epaint::{Pos2, Vec2},
 };
-use utils::{base_shapes::*, math::calc_points_pos, rendering::{render_lines, render_sides}, structs::*, colors::id_to_color};
-
-const Z_OFFSET: f64 = -4.0;
-const SHAPE_SIZE: f64 = 120.0;
+use utils::{base_shapes::*, math::calc_points_pos, rendering::render_lines, structs::*, colors::id_to_color};
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_maximized(true),
         ..Default::default()
     };
     eframe::run_native("3D Shape", options, Box::new(|_cc| Box::<MyApp>::default()))
@@ -25,8 +22,9 @@ struct MyApp {
     render_mode: u8,
     base_shape: Shape,
     base_shape_index: usize,
-    experiment_1: bool,
     render_cords: bool,
+    shape_offset: (f32, f32),
+    shape_size: f64,
 }
 
 impl Default for MyApp {
@@ -39,14 +37,25 @@ impl Default for MyApp {
             render_mode: 0,
             base_shape: base_cube(),
             base_shape_index: 0,
-            experiment_1: false,
             render_cords: false,
+            shape_offset: (0.0, 0.0),
+            shape_size: 120.0,
         }
     }
 }
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Calculates the offset the shape needs to be in the center of the screen
+        let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
+        let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
+
+        self.shape_offset = (
+            (window_size.0 / 2.0) - (self.shape_size / 2.0) as f32 + self.shape_size as f32 / 2.0,
+            (window_size.1 / 2.0) - (self.shape_size / 2.0) as f32 + self.shape_size as f32 / 2.0,
+        );
+
+        // Updates the shape
         match self.rotation_direction {
             true => {
                 self.rotation += 0.5;
@@ -68,6 +77,7 @@ impl eframe::App for MyApp {
             &mut self.screen_shape,
             self.rotation,
             self.base_shape.clone(),
+            self.shape_size,
         );
 
         self.screen_shape = shape_pos_calcs.0;
@@ -103,8 +113,8 @@ impl eframe::App for MyApp {
                         ui.painter().rect_filled(
                             egui::Rect::from_min_size(
                                 Pos2 {
-                                    x: point.x as f32 + 330.0,
-                                    y: point.y as f32 + 105.0,
+                                    x: point.x as f32 + self.shape_offset.0 - 5.0,
+                                    y: point.y as f32 + self.shape_offset.1 - 5.0,
                                 },
                                 Vec2 { x: 10.0, y: 10.0 },
                             ),
@@ -120,17 +130,8 @@ impl eframe::App for MyApp {
                     &Shape {
                         points: points.clone(),
                         connections: connections.clone(),
-                    }
-                );
-            }
-
-            if self.experiment_1 {
-                render_sides(
-                    ui,
-                    &Shape {
-                        points: points.clone(),
-                        connections: connections.clone(),
-                    }
+                    },
+                    self.shape_offset,
                 );
             }
 
@@ -149,10 +150,10 @@ impl eframe::App for MyApp {
         // Render ui with sliders
         egui::Window::new("3D Shape").show(ctx, |ui| {
             ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
+            ui.add(egui::Slider::new(&mut self.shape_size, 40.0..=500.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
-            let experiment_1_button = ui.add(egui::Button::new("Experiment #1"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
             // Add slider for base shape
@@ -176,10 +177,6 @@ impl eframe::App for MyApp {
 
             if reverse_button.clicked() {
                 self.rotation_direction = !self.rotation_direction;
-            }
-
-            if experiment_1_button.clicked() {
-                self.experiment_1 = !self.experiment_1;
             }
 
             if render_cords_button.clicked() {

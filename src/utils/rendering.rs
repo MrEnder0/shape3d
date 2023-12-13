@@ -5,7 +5,7 @@ use eframe::{
 
 use super::{structs::Shape, colors::{id_to_color, mix_colors}};
 
-pub fn render_lines(ui: &mut Ui, shape: &Shape) {
+pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     let points = shape.points.clone();
 
     for connection in shape.connections.iter() {
@@ -29,12 +29,12 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape) {
         ui.painter().line_segment(
             [
                 Pos2 {
-                    x: points[point1].x as f32 + 335.0,
-                    y: points[point1].y as f32 + 110.0,
+                    x: points[point1].x as f32 + offset.0,
+                    y: points[point1].y as f32 + offset.1,
                 },
                 Pos2 {
-                    x: points[point2].x as f32 + 335.0,
-                    y: points[point2].y as f32 + 110.0,
+                    x: points[point2].x as f32 + offset.0,
+                    y: points[point2].y as f32 + offset.1,
                 },
             ],
             Stroke::new(1.0, render_color),
@@ -43,7 +43,7 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape) {
 }
 
 /// Experiment #1
-pub fn render_sides(ui: &mut Ui, shape: &Shape) {
+pub fn render_sides(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     let points = shape.points.clone();
 
     for connection in shape.connections.iter() {
@@ -67,8 +67,8 @@ pub fn render_sides(ui: &mut Ui, shape: &Shape) {
         ui.painter().rect_filled(
             egui::Rect::from_min_size(
                 Pos2 {
-                    x: points[point1].x as f32 + 330.0,
-                    y: points[point1].y as f32 + 105.0,
+                    x: points[point1].x as f32 + offset.0,
+                    y: points[point1].y as f32 + offset.1,
                 },
                 Vec2 { x: points[point2].x as f32 - points[point1].x as f32 + 10.0, y: points[point2].y as f32 - points[point1].y as f32 + 10.0 },
             ),
