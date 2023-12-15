@@ -24,6 +24,50 @@ impl Clone for Shape {
     }
 }
 
+pub trait RemovePoint {
+    fn remove_point(&mut self, point: usize);
+}
+
+impl RemovePoint for Shape {
+    fn remove_point(&mut self, point: usize) {
+        self.points = self
+            .points
+            .clone()
+            .to_vec()
+            .iter()
+            .enumerate()
+            .filter(|(i, _p)| *i != point)
+            .map(|(_i, p)| *p)
+            .collect::<Box<[Point]>>();
+
+        self.connections = self
+            .connections
+            .clone()
+            .to_vec()
+            .iter()
+            .filter(|c| c.point1 != point && c.point2 != point)
+            .copied()
+            .collect::<Box<[Connection]>>();
+    }
+}
+
+pub trait AddPoint {
+    fn add_point(&mut self, point: Point);
+}
+
+impl AddPoint for Shape {
+    fn add_point(&mut self, point: Point) {
+        self.points = self
+            .points
+            .clone()
+            .to_vec()
+            .iter()
+            .chain([point].iter())
+            .copied()
+            .collect::<Box<[Point]>>();
+    }
+}
+
 impl PartialEq for Shape {
     fn eq(&self, other: &Self) -> bool {
         self.points == other.points && self.connections == other.connections

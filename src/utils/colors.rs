@@ -10,6 +10,18 @@ pub fn id_to_color(id: usize) -> egui::Color32 {
         5 => egui::Color32::from_rgb(0, 255, 255),
         6 => egui::Color32::from_rgb(255, 255, 255),
         7 => egui::Color32::from_rgb(255, 128, 0),
+        8 => egui::Color32::from_rgb(255, 0, 128),
+        9 => egui::Color32::from_rgb(128, 255, 0),
+        10 => egui::Color32::from_rgb(0, 255, 128),
+        11 => egui::Color32::from_rgb(128, 0, 255),
+        12 => egui::Color32::from_rgb(0, 128, 255),
+        13 => egui::Color32::from_rgb(128, 128, 128),
+        14 => egui::Color32::from_rgb(128, 128, 0),
+        15 => egui::Color32::from_rgb(128, 0, 128),
+        16 => egui::Color32::from_rgb(0, 128, 128),
+        17 => egui::Color32::from_rgb(0, 0, 128),
+        18 => egui::Color32::from_rgb(0, 128, 0),
+        19 => egui::Color32::from_rgb(128, 0, 0),
         _ => egui::Rgba::TRANSPARENT.into(),
     }
 }

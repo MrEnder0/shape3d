@@ -4,7 +4,9 @@ use eframe::{
     egui,
     epaint::{Pos2, Vec2},
 };
-use utils::{base_shapes::*, math::calc_points_pos, rendering::render_lines, structs::*, colors::id_to_color};
+use utils::{
+    base_shapes::*, colors::id_to_color, math::calc_points_pos, rendering::render_lines, structs::*,
+};
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
@@ -91,9 +93,7 @@ impl eframe::App for MyApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             for (_i, point) in points.iter().enumerate() {
                 let color = match self.color_mode {
-                    0 => {
-                        id_to_color(point.id)
-                    },
+                    0 => id_to_color(point.id),
                     1 => {
                         if point.z > -4.8 {
                             egui::Color32::from_rgb(0, 255, 0)
@@ -112,18 +112,18 @@ impl eframe::App for MyApp {
                 };
 
                 if self.render_mode == 0 || self.render_mode == 2 {
-                        ui.painter().rect_filled(
-                            egui::Rect::from_min_size(
-                                Pos2 {
-                                    x: point.x as f32 + self.shape_offset.0 - 5.0,
-                                    y: point.y as f32 + self.shape_offset.1 - 5.0,
-                                },
-                                Vec2 { x: 10.0, y: 10.0 },
-                            ),
-                            10.0,
-                            color,
-                        );
-                    }
+                    ui.painter().rect_filled(
+                        egui::Rect::from_min_size(
+                            Pos2 {
+                                x: point.x as f32 + self.shape_offset.0 - 5.0,
+                                y: point.y as f32 + self.shape_offset.1 - 5.0,
+                            },
+                            Vec2 { x: 10.0, y: 10.0 },
+                        ),
+                        10.0,
+                        color,
+                    );
+                }
             }
 
             if self.render_mode == 1 || self.render_mode == 2 {
@@ -144,7 +144,13 @@ impl eframe::App for MyApp {
                 points_clone.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
 
                 for point in points_clone.iter() {
-                    ui.label(format!("ID:{}, x:{}, y:{}, z:{}", point.id, point.x.round(), point.y.round(), point.z.round()));
+                    ui.label(format!(
+                        "ID:{}, x:{}, y:{}, z:{}",
+                        point.id,
+                        point.x.round(),
+                        point.y.round(),
+                        point.z.round()
+                    ));
                 }
             }
         });
@@ -159,25 +165,25 @@ impl eframe::App for MyApp {
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
-            let base_shape_slider = ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
+            let base_shape_slider =
+                ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
 
             if base_shape_slider.changed() {
                 match self.base_shape_index {
                     0 => {
-                            self.base_shape = base_cube();
-                            self.screen_shape = base_cube();
+                        self.base_shape = base_cube();
+                        self.screen_shape = base_cube();
                     }
                     1 => {
-                            self.base_shape = base_pyramid();
-                            self.screen_shape = base_pyramid();
+                        self.base_shape = base_pyramid();
+                        self.screen_shape = base_pyramid();
                     }
                     2 => {
-                            self.base_shape = base_diamond();
-                            self.screen_shape = base_diamond();
+                        self.base_shape = base_diamond();
+                        self.screen_shape = base_diamond();
                     }
                     _ => {}
-            }
-            
+                }
             }
 
             if reverse_button.clicked() {
@@ -189,27 +195,64 @@ impl eframe::App for MyApp {
             }
         });
 
+        let mut points_to_remove: Vec<usize> = Vec::new();
+
         egui::Window::new("Base Shape Modifier").show(ctx, |ui| {
-            let seperator_clone = self.base_shape.points.clone();
+            ui.style_mut().spacing.slider_width = 50.0;
+            ui.set_width(200.0);
+
             for (i, point) in self.base_shape.points.iter_mut().enumerate() {
                 ui.label(format!("Point {}", i));
                 ui.horizontal(|ui| {
                     ui.label("X:");
-                    ui.add(egui::Slider::new(&mut point.x, -1.0..=1.0).text("X"));
-                });
-                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::Slider::new(&mut point.x, -1.0..=1.0)
+                            .drag_value_speed(0.001)
+                            .show_value(false),
+                    )
+                    .on_hover_text(point.x.to_string());
                     ui.label("Y:");
-                    ui.add(egui::Slider::new(&mut point.y, -1.0..=1.0).text("Y"));
-                });
-                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::Slider::new(&mut point.y, -1.0..=1.0)
+                            .drag_value_speed(0.001)
+                            .show_value(false),
+                    )
+                    .on_hover_text(point.y.to_string());
                     ui.label("Z:");
-                    ui.add(egui::Slider::new(&mut point.z, -1.0..=1.0).text("Z"));
+                    ui.add(
+                        egui::Slider::new(&mut point.z, -1.0..=1.0)
+                            .drag_value_speed(0.001)
+                            .show_value(false),
+                    )
+                    .on_hover_text(point.z.to_string());
+                    if ui.add(egui::Button::new("Remove")).clicked() {
+                        points_to_remove.push(i);
+                    }
                 });
-                if i != seperator_clone.len() - 1 {
-                    ui.separator();
-                }
+
+                ui.separator();
+            }
+
+            if ui.add(egui::Button::new("Add Point")).clicked() {
+                self.base_shape.add_point(Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                    id: self.base_shape.points.len(),
+                });
+                self.screen_shape.add_point(Point {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                    id: self.base_shape.points.len(),
+                });
             }
         });
+
+        for point in points_to_remove.iter() {
+            self.base_shape.remove_point(*point);
+            self.screen_shape.remove_point(*point);
+        }
 
         std::thread::sleep(std::time::Duration::from_millis(1));
         ctx.request_repaint()
