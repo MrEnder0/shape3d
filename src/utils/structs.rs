@@ -24,23 +24,35 @@ impl Clone for Shape {
     }
 }
 
+impl PartialEq for Shape {
+    fn eq(&self, other: &Self) -> bool {
+        self.points == other.points && self.connections == other.connections
+    }
+}
+
 impl Clone for Point {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl Copy for Point {}
-
 impl PartialEq for Point {
     fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y && self.z == other.z
+        self.x == other.x && self.y == other.y && self.z == other.z && self.id == other.id
     }
 }
+
+impl Copy for Point {}
 
 impl Clone for Connection {
     fn clone(&self) -> Self {
         *self
+    }
+}
+
+impl PartialEq for Connection {
+    fn eq(&self, other: &Self) -> bool {
+        self.point1 == other.point1 && self.point2 == other.point2
     }
 }
 

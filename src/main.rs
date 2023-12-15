@@ -39,7 +39,7 @@ impl Default for MyApp {
             base_shape_index: 0,
             render_cords: false,
             shape_offset: (0.0, 0.0),
-            shape_size: 120.0,
+            shape_size: 300.0,
         }
     }
 }
@@ -148,31 +148,33 @@ impl eframe::App for MyApp {
         });
 
         // Render ui with sliders
-        egui::Window::new("3D Shape").show(ctx, |ui| {
+        egui::Window::new("Settings").show(ctx, |ui| {
             ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
-            ui.add(egui::Slider::new(&mut self.shape_size, 40.0..=500.0).text("Shape Size"));
+            ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
-            // Add slider for base shape
-            ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
+            let base_shape_slider = ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
 
-            match self.base_shape_index {
-                0 => {
-                    self.base_shape = base_cube();
-                    self.screen_shape = base_cube();
-                }
-                1 => {
-                    self.base_shape = base_pyramid();
-                    self.screen_shape = base_pyramid();
-                }
-                2 => {
-                    self.base_shape = base_diamond();
-                    self.screen_shape = base_diamond();
-                }
-                _ => {}
+            if base_shape_slider.changed() {
+                match self.base_shape_index {
+                    0 => {
+                            self.base_shape = base_cube();
+                            self.screen_shape = base_cube();
+                    }
+                    1 => {
+                            self.base_shape = base_pyramid();
+                            self.screen_shape = base_pyramid();
+                    }
+                    2 => {
+                            self.base_shape = base_diamond();
+                            self.screen_shape = base_diamond();
+                    }
+                    _ => {}
+            }
+            
             }
 
             if reverse_button.clicked() {
@@ -181,6 +183,28 @@ impl eframe::App for MyApp {
 
             if render_cords_button.clicked() {
                 self.render_cords = !self.render_cords;
+            }
+        });
+
+        egui::Window::new("Base Shape Modifier").show(ctx, |ui| {
+            let seperator_clone = self.base_shape.points.clone();
+            for (i, point) in self.base_shape.points.iter_mut().enumerate() {
+                ui.label(format!("Point {}", i));
+                ui.horizontal(|ui| {
+                    ui.label("X:");
+                    ui.add(egui::Slider::new(&mut point.x, -1.0..=1.0).text("X"));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Y:");
+                    ui.add(egui::Slider::new(&mut point.y, -1.0..=1.0).text("Y"));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Z:");
+                    ui.add(egui::Slider::new(&mut point.z, -1.0..=1.0).text("Z"));
+                });
+                if i != seperator_clone.len() - 1 {
+                    ui.separator();
+                }
             }
         });
 
