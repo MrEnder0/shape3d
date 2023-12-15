@@ -17,6 +17,7 @@ fn main() -> Result<(), eframe::Error> {
 struct MyApp {
     screen_shape: Shape,
     rotation: f64,
+    rotation_speed: f64,
     rotation_direction: bool,
     color_mode: u8,
     render_mode: u8,
@@ -32,6 +33,7 @@ impl Default for MyApp {
         Self {
             screen_shape: base_cube(),
             rotation: 0.0,
+            rotation_speed: 0.5,
             rotation_direction: true,
             color_mode: 0,
             render_mode: 0,
@@ -58,14 +60,14 @@ impl eframe::App for MyApp {
         // Updates the shape
         match self.rotation_direction {
             true => {
-                self.rotation += 0.5;
+                self.rotation += self.rotation_speed;
 
                 if self.rotation >= 360.0 {
                     self.rotation = 0.0;
                 }
             }
             false => {
-                self.rotation -= 0.5;
+                self.rotation -= self.rotation_speed;
 
                 if self.rotation <= 0.0 {
                     self.rotation = 360.0;
@@ -150,6 +152,7 @@ impl eframe::App for MyApp {
         // Render ui with sliders
         egui::Window::new("Settings").show(ctx, |ui| {
             ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
+            ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
