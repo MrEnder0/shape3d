@@ -59,10 +59,10 @@ pub fn generate_and_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32))
         let closest_points = super::math::calc_closest_points(base_point, shape);
 
         let points = shape.points.clone();
-            let starting_point = points
-                .iter()
-                .enumerate()
-                .find(|(_i, p)| p.id == base_point.id);
+        let starting_point = points
+            .iter()
+            .enumerate()
+            .find(|(_i, p)| p.id == base_point.id);
 
         for point in closest_points.iter() {
             if point.id == base_point.id {

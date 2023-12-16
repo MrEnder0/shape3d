@@ -6,7 +6,11 @@ use eframe::{
 };
 use rand::Rng;
 use utils::{
-    base_shapes::*, colors::id_to_color, math::calc_points_pos, rendering::{render_lines, generate_and_render_lines}, structs::*,
+    base_shapes::*,
+    colors::id_to_color,
+    math::calc_points_pos,
+    rendering::{generate_and_render_lines, render_lines, render_sides},
+    structs::*,
 };
 
 fn main() -> Result<(), eframe::Error> {
@@ -98,7 +102,7 @@ impl eframe::App for MyApp {
                 let color = match self.color_mode {
                     0 => id_to_color(point.id),
                     1 => {
-                        if point.z > -4.8 {
+                        if point.z > -4.8 * self.shape_size {
                             egui::Color32::from_rgb(0, 255, 0)
                         } else {
                             egui::Color32::from_rgb(255, 0, 0)
@@ -107,7 +111,7 @@ impl eframe::App for MyApp {
                     _ => egui::Rgba::TRANSPARENT.into(),
                 };
 
-                if self.render_mode == 0 || self.render_mode == 2 {
+                if self.render_mode == 0 || self.render_mode == 2 || self.render_mode == 3 {
                     ui.painter().rect_filled(
                         egui::Rect::from_min_size(
                             Pos2 {
@@ -144,6 +148,17 @@ impl eframe::App for MyApp {
                 );
             }
 
+            if self.render_mode == 4 {
+                render_sides(
+                    ui,
+                    &Shape {
+                        points: points.clone(),
+                        connections: connections.clone(),
+                    },
+                    self.shape_offset,
+                );
+            }
+
             if self.render_cords {
                 ui.label("Note: These are transformed cords with original z-axis values");
 
@@ -156,7 +171,7 @@ impl eframe::App for MyApp {
                         point.id,
                         point.x.round(),
                         point.y.round(),
-                        point.z.round()
+                        (point.z / self.shape_size).round()
                     ));
                 }
             }
@@ -169,7 +184,7 @@ impl eframe::App for MyApp {
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
-            ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
+            ui.add(egui::Slider::new(&mut self.render_mode, 0..=4).text("Render Mode"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
             let base_shape_slider =

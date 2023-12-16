@@ -24,7 +24,7 @@ pub fn calc_points_pos(
             screen_shape.points[i].x / screen_shape.points[i].z * shape_size;
         projected_shape.points[i].y =
             screen_shape.points[i].y / screen_shape.points[i].z * shape_size;
-        projected_shape.points[i].z = screen_shape.points[i].z;
+        projected_shape.points[i].z = screen_shape.points[i].z * shape_size;
     }
 
     projected_shape.connections = base_shape.connections.clone();
@@ -49,9 +49,10 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
     let mut distances: Vec<ClosestPoints> = Vec::new();
 
     for point in shape.points.iter() {
-        let distance = ((base_point.x - point.x).powi(2) + (base_point.y - point.y).powi(2))
-            .sqrt()
-            .abs();
+        let distance = ((point.x - base_point.x).powi(2)
+            + (point.y - base_point.y).powi(2)
+            + (point.z - base_point.z).powi(2))
+        .sqrt();
 
         distances.push(ClosestPoints {
             id: point.id,
@@ -59,13 +60,15 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
         });
     }
 
+    distances.remove(
+        distances
+            .iter()
+            .position(|p| p.id == base_point.id)
+            .unwrap(),
+    );
     distances.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
 
-    let closest_points = distances
-        .iter()
-        .take(3)
-        .map(|p| shape.points[p.id])
-        .collect();
+    let closest_points = distances[0..3].iter().map(|p| shape.points[p.id]).collect();
 
     closest_points
 }
