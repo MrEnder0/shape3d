@@ -2025,6 +2025,7 @@ name = "shape3d"
 version = "0.2.6"
 dependencies = [
  "eframe",
+ "rand",
 ]
 
 [[package]]

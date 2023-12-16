@@ -4,8 +4,9 @@ use eframe::{
     egui,
     epaint::{Pos2, Vec2},
 };
+use rand::Rng;
 use utils::{
-    base_shapes::*, colors::id_to_color, math::calc_points_pos, rendering::render_lines, structs::*,
+    base_shapes::*, colors::id_to_color, math::calc_points_pos, rendering::{render_lines, generate_and_render_lines}, structs::*,
 };
 
 fn main() -> Result<(), eframe::Error> {
@@ -50,6 +51,8 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let mut rng = rand::thread_rng();
+
         // Calculates the offset the shape needs to be in the center of the screen
         let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
@@ -101,13 +104,6 @@ impl eframe::App for MyApp {
                             egui::Color32::from_rgb(255, 0, 0)
                         }
                     }
-                    2 => {
-                        if point.z > -4.8 {
-                            egui::Color32::from_rgb(255, 255, 255)
-                        } else {
-                            egui::Rgba::TRANSPARENT.into()
-                        }
-                    }
                     _ => egui::Rgba::TRANSPARENT.into(),
                 };
 
@@ -137,6 +133,17 @@ impl eframe::App for MyApp {
                 );
             }
 
+            if self.render_mode == 3 {
+                generate_and_render_lines(
+                    ui,
+                    &Shape {
+                        points: points.clone(),
+                        connections: Box::new([]),
+                    },
+                    self.shape_offset,
+                );
+            }
+
             if self.render_cords {
                 ui.label("Note: These are transformed cords with original z-axis values");
 
@@ -161,8 +168,8 @@ impl eframe::App for MyApp {
             ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
-            ui.add(egui::Slider::new(&mut self.color_mode, 0..=2).text("Color Mode"));
-            ui.add(egui::Slider::new(&mut self.render_mode, 0..=2).text("Render Mode"));
+            ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
+            ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
             let base_shape_slider =
@@ -202,7 +209,7 @@ impl eframe::App for MyApp {
             ui.set_width(200.0);
 
             for (i, point) in self.base_shape.points.iter_mut().enumerate() {
-                ui.label(format!("Point {}", i));
+                ui.colored_label(id_to_color(point.id), format!("Point {}", i));
                 ui.horizontal(|ui| {
                     ui.label("X:");
                     ui.add(
@@ -235,9 +242,9 @@ impl eframe::App for MyApp {
 
             if ui.add(egui::Button::new("Add Point")).clicked() {
                 self.base_shape.add_point(Point {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
+                    x: rng.gen_range(-1.0..=1.0),
+                    y: rng.gen_range(-1.0..=1.0),
+                    z: rng.gen_range(-1.0..=1.0),
                     id: self.base_shape.points.len(),
                 });
                 self.screen_shape.add_point(Point {

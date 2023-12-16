@@ -40,6 +40,36 @@ pub fn calc_point_visibility(point: &Point, shape: &Shape) -> bool {
     true
 }
 
+struct ClosestPoints {
+    id: usize,
+    distance: f64,
+}
+
+pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
+    let mut distances: Vec<ClosestPoints> = Vec::new();
+
+    for point in shape.points.iter() {
+        let distance = ((base_point.x - point.x).powi(2) + (base_point.y - point.y).powi(2))
+            .sqrt()
+            .abs();
+
+        distances.push(ClosestPoints {
+            id: point.id,
+            distance,
+        });
+    }
+
+    distances.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+
+    let closest_points = distances
+        .iter()
+        .take(3)
+        .map(|p| shape.points[p.id])
+        .collect();
+
+    closest_points
+}
+
 fn rad(deg: f64) -> f64 {
     deg * std::f32::consts::PI as f64 / 180.0
 }

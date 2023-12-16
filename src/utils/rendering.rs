@@ -53,6 +53,41 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     }
 }
 
+// Partially working
+pub fn generate_and_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
+    for base_point in shape.points.iter() {
+        let closest_points = super::math::calc_closest_points(base_point, shape);
+
+        let points = shape.points.clone();
+            let starting_point = points
+                .iter()
+                .enumerate()
+                .find(|(_i, p)| p.id == base_point.id);
+
+        for point in closest_points.iter() {
+            if point.id == base_point.id {
+                continue;
+            }
+
+            let render_color = id_to_color(point.id);
+
+            ui.painter().line_segment(
+                [
+                    Pos2 {
+                        x: shape.points[starting_point.unwrap().0].x as f32 + offset.0,
+                        y: shape.points[starting_point.unwrap().0].y as f32 + offset.1,
+                    },
+                    Pos2 {
+                        x: point.x as f32 + offset.0,
+                        y: point.y as f32 + offset.1,
+                    },
+                ],
+                Stroke::new(1.0, render_color),
+            );
+        }
+    }
+}
+
 /// Experiment #1
 pub fn render_sides(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     let points = shape.points.clone();
