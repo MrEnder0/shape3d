@@ -7,8 +7,9 @@ pub fn calc_points_pos(
     rotation: f64,
     base_shape: Shape,
     shape_size: f64,
-) -> (Shape, Shape) {
+) -> (Shape, Shape, Shape) {
     let mut projected_shape: Shape = base_shape.clone();
+    let mut shape_cache = base_shape.clone();
 
     let itter_clone = screen_shape.points.clone();
 
@@ -20,6 +21,10 @@ pub fn calc_points_pos(
             + base_shape.points[i].z * rad(rotation).cos()
             + Z_OFFSET;
 
+        shape_cache.points[i].x = screen_shape.points[i].x;
+        shape_cache.points[i].y = screen_shape.points[i].y;
+        shape_cache.points[i].z = screen_shape.points[i].z;
+
         projected_shape.points[i].x =
             screen_shape.points[i].x / screen_shape.points[i].z * shape_size;
         projected_shape.points[i].y =
@@ -28,10 +33,12 @@ pub fn calc_points_pos(
     }
 
     projected_shape.connections = base_shape.connections.clone();
+    shape_cache.connections = Box::new([]);
 
-    (screen_shape.clone(), projected_shape)
+    (screen_shape.clone(), projected_shape, shape_cache)
 }
 
+/*
 pub fn calc_point_visibility(point: &Point, shape: &Shape) -> bool {
     // TODO:
 
@@ -39,6 +46,7 @@ pub fn calc_point_visibility(point: &Point, shape: &Shape) -> bool {
 
     true
 }
+*/
 
 struct ClosestPoints {
     id: usize,
@@ -47,6 +55,10 @@ struct ClosestPoints {
 
 pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
     let mut distances: Vec<ClosestPoints> = Vec::new();
+
+    if shape.points.len() < 4 {
+        return Vec::new();
+    }
 
     for point in shape.points.iter() {
         let distance = ((point.x - base_point.x).powi(2)
@@ -68,7 +80,11 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
     );
     distances.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
 
-    let closest_points = distances[0..3].iter().map(|p| shape.points[p.id]).collect();
+    let closest_points = distances
+        .iter()
+        .take(3)
+        .map(|p| shape.points[p.id])
+        .collect();
 
     closest_points
 }

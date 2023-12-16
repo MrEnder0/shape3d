@@ -9,7 +9,7 @@ use utils::{
     base_shapes::*,
     colors::id_to_color,
     math::calc_points_pos,
-    rendering::{generate_and_render_lines, render_lines, render_sides},
+    rendering::{dynamic_render_lines, render_lines, render_sides},
     structs::*,
 };
 
@@ -33,6 +33,7 @@ struct MyApp {
     render_cords: bool,
     shape_offset: (f32, f32),
     shape_size: f64,
+    points_cache: Shape,
 }
 
 impl Default for MyApp {
@@ -49,6 +50,7 @@ impl Default for MyApp {
             render_cords: false,
             shape_offset: (0.0, 0.0),
             shape_size: 300.0,
+            points_cache: base_cube(),
         }
     }
 }
@@ -94,6 +96,7 @@ impl eframe::App for MyApp {
         self.screen_shape = shape_pos_calcs.0;
         let mut points = shape_pos_calcs.1.points.clone();
         let connections = shape_pos_calcs.1.connections.clone();
+        self.points_cache = shape_pos_calcs.2;
 
         points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
@@ -111,7 +114,7 @@ impl eframe::App for MyApp {
                     _ => egui::Rgba::TRANSPARENT.into(),
                 };
 
-                if self.render_mode == 0 || self.render_mode == 2 || self.render_mode == 3 {
+                if self.render_mode == 0 || self.render_mode == 2 {
                     ui.painter().rect_filled(
                         egui::Rect::from_min_size(
                             Pos2 {
@@ -138,13 +141,14 @@ impl eframe::App for MyApp {
             }
 
             if self.render_mode == 3 {
-                generate_and_render_lines(
+                dynamic_render_lines(
                     ui,
                     &Shape {
-                        points: points.clone(),
+                        points: self.points_cache.points.clone(),
                         connections: Box::new([]),
                     },
                     self.shape_offset,
+                    self.shape_size as f32,
                 );
             }
 

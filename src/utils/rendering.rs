@@ -1,6 +1,6 @@
 use eframe::{
     egui::{self, Ui},
-    epaint::{Pos2, Stroke, Vec2},
+    epaint::{FontId, Pos2, Stroke, Vec2},
 };
 
 use super::{
@@ -53,10 +53,23 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     }
 }
 
-// Partially working
-pub fn generate_and_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
+pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shape_size: f32) {
     for base_point in shape.points.iter() {
         let closest_points = super::math::calc_closest_points(base_point, shape);
+
+        if closest_points.is_empty() {
+            // Do text at center of screen
+            ui.painter().text(
+                Pos2 {
+                    x: ui.available_width() / 2.0,
+                    y: ui.available_height() / 2.0,
+                },
+                egui::Align2::CENTER_CENTER,
+                "This rendering method does not support shapes with less than 4 points",
+                FontId::default(),
+                id_to_color(base_point.id),
+            );
+        }
 
         let points = shape.points.clone();
         let starting_point = points
@@ -74,12 +87,14 @@ pub fn generate_and_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32))
             ui.painter().line_segment(
                 [
                     Pos2 {
-                        x: shape.points[starting_point.unwrap().0].x as f32 + offset.0,
-                        y: shape.points[starting_point.unwrap().0].y as f32 + offset.1,
+                        x: (shape.points[starting_point.unwrap().0].x as f32 * shape_size)
+                            + offset.0,
+                        y: (shape.points[starting_point.unwrap().0].y as f32 * shape_size)
+                            + offset.1,
                     },
                     Pos2 {
-                        x: point.x as f32 + offset.0,
-                        y: point.y as f32 + offset.1,
+                        x: (point.x as f32 * shape_size) + offset.0,
+                        y: (point.y as f32 * shape_size) + offset.1,
                     },
                 ],
                 Stroke::new(1.0, render_color),
