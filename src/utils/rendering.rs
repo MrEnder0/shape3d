@@ -82,22 +82,32 @@ pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shap
                 continue;
             }
 
-            let render_color = id_to_color(point.id);
+            let render_color_one = id_to_color(point.id);
+            let render_color_two = id_to_color(base_point.id);
 
             ui.painter().line_segment(
                 [
                     Pos2 {
-                        x: (shape.points[starting_point.unwrap().0].x as f32 * shape_size)
+                        x: ((shape.points[starting_point.unwrap().0].x
+                            / shape.points[starting_point.unwrap().0].z)
+                            as f32
+                            * shape_size)
                             + offset.0,
-                        y: (shape.points[starting_point.unwrap().0].y as f32 * shape_size)
+                        y: ((shape.points[starting_point.unwrap().0].y
+                            / shape.points[starting_point.unwrap().0].z)
+                            as f32
+                            * shape_size)
                             + offset.1,
                     },
                     Pos2 {
-                        x: (point.x as f32 * shape_size) + offset.0,
-                        y: (point.y as f32 * shape_size) + offset.1,
+                        x: ((point.x / point.z) as f32 * shape_size) + offset.0,
+                        y: ((point.y / point.z) as f32 * shape_size) + offset.1,
                     },
                 ],
-                Stroke::new(1.0, render_color),
+                Stroke::new(
+                    1.0,
+                    mix_colors([render_color_one, render_color_two].to_vec()),
+                ),
             );
         }
     }

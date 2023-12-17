@@ -103,7 +103,11 @@ impl eframe::App for MyApp {
         // Used to drag the cube, must be rendered before everything else so its hidden behind the cube
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.centered_and_justified(|ui| {
-                ui.add(egui::DragValue::new(&mut self.rotation).max_decimals(2).speed(0.3))
+                ui.add(
+                    egui::DragValue::new(&mut self.rotation)
+                        .max_decimals(2)
+                        .speed(0.3),
+                )
             });
         });
 
@@ -121,7 +125,7 @@ impl eframe::App for MyApp {
                     _ => egui::Rgba::TRANSPARENT.into(),
                 };
 
-                if self.render_mode == 0 || self.render_mode == 2 {
+                if self.render_mode == 0 {
                     ui.painter().rect_filled(
                         egui::Rect::from_min_size(
                             Pos2 {
@@ -136,7 +140,7 @@ impl eframe::App for MyApp {
                 }
             }
 
-            if self.render_mode == 1 || self.render_mode == 2 {
+            if self.render_mode == 1 {
                 render_lines(
                     ui,
                     &Shape {
@@ -147,7 +151,7 @@ impl eframe::App for MyApp {
                 );
             }
 
-            if self.render_mode == 3 {
+            if self.render_mode == 2 {
                 dynamic_render_lines(
                     ui,
                     &Shape {
@@ -159,7 +163,7 @@ impl eframe::App for MyApp {
                 );
             }
 
-            if self.render_mode == 4 {
+            if self.render_mode == 3 {
                 render_sides(
                     ui,
                     &Shape {
@@ -193,14 +197,15 @@ impl eframe::App for MyApp {
             ui.add(egui::Label::new(format!("Rotation: {}", self.rotation)));
             ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
-            let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
-            ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
-            ui.add(egui::Slider::new(&mut self.render_mode, 0..=4).text("Render Mode"));
-            let render_cords_button = ui.add(egui::Button::new("Render Cords"));
-            
-
+            ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
+            if self.render_mode == 0 {
+                ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
+            }
             let base_shape_slider =
                 ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
+
+            let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
+            let render_cords_button = ui.add(egui::Button::new("Render Cords"));
 
             if base_shape_slider.changed() {
                 match self.base_shape_index {
