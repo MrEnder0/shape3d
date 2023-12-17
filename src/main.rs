@@ -100,6 +100,13 @@ impl eframe::App for MyApp {
 
         points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
+        // Used to drag the cube, must be rendered before everything else so its hidden behind the cube
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.centered_and_justified(|ui| {
+                ui.add(egui::DragValue::new(&mut self.rotation).max_decimals(2).speed(0.3))
+            });
+        });
+
         egui::CentralPanel::default().show(ctx, |ui| {
             for (_i, point) in points.iter().enumerate() {
                 let color = match self.color_mode {
@@ -183,13 +190,14 @@ impl eframe::App for MyApp {
 
         // Render ui with sliders
         egui::Window::new("Settings").show(ctx, |ui| {
-            ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
+            ui.add(egui::Label::new(format!("Rotation: {}", self.rotation)));
             ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=4).text("Render Mode"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
+            
 
             let base_shape_slider =
                 ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
