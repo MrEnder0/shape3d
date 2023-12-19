@@ -198,9 +198,10 @@ impl eframe::App for MyApp {
             ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
-            if self.render_mode == 0 {
-                ui.add(egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"));
-            }
+            ui.add_enabled(
+                matches!(self.render_mode, 0),
+                egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"),
+            );
             let base_shape_slider =
                 ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
 
@@ -264,7 +265,13 @@ impl eframe::App for MyApp {
                             .show_value(false),
                     )
                     .on_hover_text(point.z.to_string());
-                    if ui.add(egui::Button::new("Remove")).clicked() {
+                    if ui
+                        .add_enabled(
+                            (matches!(self.render_mode, 0) || matches!(self.render_mode, 2)),
+                            egui::Button::new("Remove"),
+                        )
+                        .clicked()
+                    {
                         points_to_remove.push(i);
                     }
                 });
@@ -272,7 +279,13 @@ impl eframe::App for MyApp {
                 ui.separator();
             }
 
-            if ui.add(egui::Button::new("Add Point")).clicked() {
+            if ui
+                .add_enabled(
+                    (matches!(self.render_mode, 0) || matches!(self.render_mode, 2)),
+                    egui::Button::new("Add Point"),
+                )
+                .clicked()
+            {
                 self.base_shape.add_point(Point {
                     x: rng.gen_range(-1.0..=1.0),
                     y: rng.gen_range(-1.0..=1.0),
