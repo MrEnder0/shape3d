@@ -1,6 +1,6 @@
 use eframe::{
     egui::{self, Ui},
-    epaint::{FontId, Pos2, Stroke, Vec2},
+    epaint::{FontId, Pos2, Stroke, Vec2, Color32},
 };
 
 use super::{
@@ -67,8 +67,11 @@ pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shap
                 egui::Align2::CENTER_CENTER,
                 "This rendering method does not support shapes with less than 4 points",
                 FontId::default(),
-                id_to_color(base_point.id),
+                // I chose this color because it had a cool name also it can be seen on light or dark themes
+                Color32::KHAKI,
             );
+
+            return;
         }
 
         let points = shape.points.clone();
