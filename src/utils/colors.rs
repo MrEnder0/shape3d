@@ -1,29 +1,40 @@
 use eframe::egui;
+use rand::Rng;
+use std::collections::HashMap;
 
-pub fn id_to_color(id: usize) -> egui::Color32 {
-    match id {
-        0 => egui::Color32::from_rgb(255, 0, 0),
-        1 => egui::Color32::from_rgb(0, 255, 0),
-        2 => egui::Color32::from_rgb(0, 0, 255),
-        3 => egui::Color32::from_rgb(255, 255, 0),
-        4 => egui::Color32::from_rgb(255, 0, 255),
-        5 => egui::Color32::from_rgb(0, 255, 255),
-        6 => egui::Color32::from_rgb(255, 255, 255),
-        7 => egui::Color32::from_rgb(255, 128, 0),
-        8 => egui::Color32::from_rgb(255, 0, 128),
-        9 => egui::Color32::from_rgb(128, 255, 0),
-        10 => egui::Color32::from_rgb(0, 255, 128),
-        11 => egui::Color32::from_rgb(128, 0, 255),
-        12 => egui::Color32::from_rgb(0, 128, 255),
-        13 => egui::Color32::from_rgb(128, 128, 128),
-        14 => egui::Color32::from_rgb(128, 128, 0),
-        15 => egui::Color32::from_rgb(128, 0, 128),
-        16 => egui::Color32::from_rgb(0, 128, 128),
-        17 => egui::Color32::from_rgb(0, 0, 128),
-        18 => egui::Color32::from_rgb(0, 128, 0),
-        19 => egui::Color32::from_rgb(128, 0, 0),
-        _ => egui::Rgba::TRANSPARENT.into(),
+pub struct ColorCache {
+    // ID -> Color
+    pub colors: HashMap<usize, egui::Color32>,
+}
+
+impl ColorCache {
+    pub fn new() -> Self {
+        Self {
+            colors: HashMap::new(),
+        }
     }
+
+    pub fn get_color(&mut self, id: usize) -> egui::Color32 {
+        if let std::collections::hash_map::Entry::Vacant(e) = self.colors.entry(id) {
+            let color = gen_color();
+            e.insert(color);
+            color
+        } else {
+            self.colors[&id]
+        }
+    }
+
+    pub fn copy(&self) -> Self {
+        Self {
+            colors: self.colors.clone(),
+        }
+    }
+}
+
+fn gen_color() -> egui::Color32 {
+    let mut rng = rand::thread_rng();
+
+    egui::Color32::from_rgb(rng.gen_range(0..=255), rng.gen_range(0..=255), rng.gen_range(0..=255))
 }
 
 pub fn mix_colors(colors: Vec<egui::Color32>) -> egui::Color32 {

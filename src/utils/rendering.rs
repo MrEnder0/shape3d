@@ -4,11 +4,11 @@ use eframe::{
 };
 
 use super::{
-    colors::{id_to_color, mix_colors},
+    colors::{ColorCache, mix_colors},
     structs::Shape,
 };
 
-pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
+pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: (f32, f32)) {
     let points = shape.points.clone();
 
     for connection in shape.connections.iter() {
@@ -31,8 +31,8 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
 
         let render_color = mix_colors(
             [
-                id_to_color(points[point1].id),
-                id_to_color(points[point2].id),
+                ColorCache::get_color(&mut colors, points[point1].id),
+                ColorCache::get_color(&mut colors, points[point2].id),
             ]
             .to_vec(),
         );
@@ -53,7 +53,7 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
     }
 }
 
-pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shape_size: f32) {
+pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: (f32, f32), shape_size: f32) {
     for base_point in shape.points.iter() {
         let closest_points = super::math::calc_closest_points(base_point, shape);
 
@@ -85,8 +85,8 @@ pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shap
                 continue;
             }
 
-            let render_color_one = id_to_color(point.id);
-            let render_color_two = id_to_color(base_point.id);
+            let render_color_one = ColorCache::get_color(&mut colors, point.id);
+            let render_color_two = ColorCache::get_color(&mut colors, base_point.id);
 
             ui.painter().line_segment(
                 [
@@ -117,7 +117,7 @@ pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, offset: (f32, f32), shap
 }
 
 /// Experiment #1
-pub fn render_sides(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
+pub fn render_sides(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: (f32, f32)) {
     let points = shape.points.clone();
 
     for connection in shape.connections.iter() {
@@ -137,8 +137,8 @@ pub fn render_sides(ui: &mut Ui, shape: &Shape, offset: (f32, f32)) {
 
         let render_color = mix_colors(
             [
-                id_to_color(points[point1].id),
-                id_to_color(points[point2].id),
+                ColorCache::get_color(&mut colors, points[point1].id),
+                ColorCache::get_color(&mut colors, points[point2].id),
             ]
             .to_vec(),
         );

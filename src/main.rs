@@ -7,7 +7,7 @@ use eframe::{
 use rand::Rng;
 use utils::{
     base_shapes::*,
-    colors::id_to_color,
+    colors::ColorCache,
     math::calc_points_pos,
     rendering::{dynamic_render_lines, render_lines, render_sides},
     structs::*,
@@ -34,6 +34,7 @@ struct MyApp {
     shape_offset: (f32, f32),
     shape_size: f64,
     points_cache: Shape,
+    color_cache: ColorCache,
 }
 
 impl Default for MyApp {
@@ -51,6 +52,7 @@ impl Default for MyApp {
             shape_offset: (0.0, 0.0),
             shape_size: 300.0,
             points_cache: base_cube(),
+            color_cache: ColorCache::new(),
         }
     }
 }
@@ -114,7 +116,7 @@ impl eframe::App for MyApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             for (_i, point) in points.iter().enumerate() {
                 let color = match self.color_mode {
-                    0 => id_to_color(point.id),
+                    0 => ColorCache::get_color(&mut self.color_cache, point.id),
                     1 => {
                         if point.z > -4.8 * self.shape_size {
                             egui::Color32::from_rgb(0, 255, 0)
@@ -147,6 +149,7 @@ impl eframe::App for MyApp {
                         points: points.clone(),
                         connections: connections.clone(),
                     },
+                    self.color_cache.copy(),
                     self.shape_offset,
                 );
             }
@@ -158,6 +161,7 @@ impl eframe::App for MyApp {
                         points: self.points_cache.points.clone(),
                         connections: Box::new([]),
                     },
+                    self.color_cache.copy(),
                     self.shape_offset,
                     self.shape_size as f32,
                 );
@@ -170,6 +174,7 @@ impl eframe::App for MyApp {
                         points: points.clone(),
                         connections: connections.clone(),
                     },
+                    self.color_cache.copy(),
                     self.shape_offset,
                 );
             }
@@ -200,7 +205,7 @@ impl eframe::App for MyApp {
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
             ui.add_enabled(
                 matches!(self.render_mode, 0),
-                egui::Slider::new(&mut self.color_mode, 0..=1).text("Color Mode"),
+                egui::Slider::new(&mut self.color_mode, 0..=1).text("Point Color Mode"),
             );
             let base_shape_slider =
                 ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
@@ -242,7 +247,7 @@ impl eframe::App for MyApp {
             ui.set_width(200.0);
 
             for (i, point) in self.base_shape.points.iter_mut().enumerate() {
-                ui.colored_label(id_to_color(point.id), format!("Point {}", i));
+                ui.colored_label(ColorCache::get_color(&mut self.color_cache, point.id), format!("Point {}", i));
                 ui.horizontal(|ui| {
                     ui.label("X:");
                     ui.add(
@@ -267,7 +272,7 @@ impl eframe::App for MyApp {
                     .on_hover_text(point.z.to_string());
                     if ui
                         .add_enabled(
-                            (matches!(self.render_mode, 0) || matches!(self.render_mode, 2)),
+                            matches!(self.render_mode, 0 | 2),
                             egui::Button::new("Remove"),
                         )
                         .clicked()
@@ -281,7 +286,7 @@ impl eframe::App for MyApp {
 
             if ui
                 .add_enabled(
-                    (matches!(self.render_mode, 0) || matches!(self.render_mode, 2)),
+                    matches!(self.render_mode, 0 | 2),
                     egui::Button::new("Add Point"),
                 )
                 .clicked()
