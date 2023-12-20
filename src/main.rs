@@ -212,6 +212,7 @@ impl eframe::App for MyApp {
 
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
+            let reset_color_cache = ui.add(egui::Button::new("Reset Color Cache"));
 
             if base_shape_slider.changed() {
                 match self.base_shape_index {
@@ -237,6 +238,10 @@ impl eframe::App for MyApp {
 
             if render_cords_button.clicked() {
                 self.render_cords = !self.render_cords;
+            }
+
+            if reset_color_cache.clicked() {
+                self.color_cache = ColorCache::new();
             }
         });
 
