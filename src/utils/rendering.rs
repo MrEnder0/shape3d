@@ -2,16 +2,17 @@ use eframe::{
     egui::{self, Ui},
     epaint::{Color32, FontId, Pos2, Stroke, Vec2},
 };
+use rayon::prelude::*;
 
 use super::{
     colors::{mix_colors, ColorCache},
     structs::Shape,
 };
 
-pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: (f32, f32)) {
+pub fn render_lines(ui: &mut Ui, shape: &Shape, colors: ColorCache, offset: (f32, f32)) {
     let points = shape.points.clone();
 
-    for connection in shape.connections.iter() {
+    shape.connections.par_iter().for_each(|connection| {
         let point1 = points
             .iter()
             .enumerate()
@@ -23,7 +24,7 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: 
             .find(|(_i, p)| p.id == connection.point2);
 
         if point1.is_none() || point2.is_none() {
-            continue;
+            return;
         }
 
         let point1 = point1.unwrap().0;
@@ -31,8 +32,8 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: 
 
         let render_color = mix_colors(
             [
-                ColorCache::get_color(&mut colors, points[point1].id),
-                ColorCache::get_color(&mut colors, points[point2].id),
+                ColorCache::get_color(&mut colors.copy(), points[point1].id),
+                ColorCache::get_color(&mut colors.copy(), points[point2].id),
             ]
             .to_vec(),
         );
@@ -50,17 +51,17 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: 
             ],
             Stroke::new(1.0, render_color),
         );
-    }
+    });
 }
 
 pub fn dynamic_render_lines(
     ui: &mut Ui,
     shape: &Shape,
-    mut colors: ColorCache,
+    colors: ColorCache,
     offset: (f32, f32),
     shape_size: f32,
 ) {
-    for base_point in shape.points.iter() {
+    shape.points.par_iter().for_each(|base_point| {
         let closest_points = super::math::calc_closest_points(base_point, shape);
 
         if closest_points.is_empty() {
@@ -91,8 +92,8 @@ pub fn dynamic_render_lines(
                 continue;
             }
 
-            let render_color_one = ColorCache::get_color(&mut colors, point.id);
-            let render_color_two = ColorCache::get_color(&mut colors, base_point.id);
+            let render_color_one = ColorCache::get_color(&mut colors.copy(), point.id);
+            let render_color_two = ColorCache::get_color(&mut colors.copy(), base_point.id);
 
             ui.painter().line_segment(
                 [
@@ -119,7 +120,7 @@ pub fn dynamic_render_lines(
                 ),
             );
         }
-    }
+    });
 }
 
 /// Experiment #1

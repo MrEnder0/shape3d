@@ -102,7 +102,7 @@ impl eframe::App for MyApp {
 
         points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
-        // Used to drag the cube, must be rendered before everything else so its hidden behind the cube
+        // Used to drag the shape, must be rendered before everything else so its hidden behind the shape
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.centered_and_justified(|ui| {
                 ui.add(
@@ -324,6 +324,7 @@ impl eframe::App for MyApp {
             self.screen_shape.remove_point(*point);
         }
 
+        std::thread::sleep(std::time::Duration::from_millis(10));
         ctx.request_repaint()
     }
 }
