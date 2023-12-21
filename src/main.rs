@@ -2,7 +2,7 @@ mod utils;
 
 use eframe::{
     egui,
-    epaint::{Pos2, Vec2},
+    epaint::{Pos2, Vec2}, emath::Rangef,
 };
 use rand::Rng;
 use utils::{
@@ -30,10 +30,10 @@ struct MyApp {
     render_mode: u8,
     base_shape: Shape,
     base_shape_index: usize,
+    selected_base_shape_index: usize,
     render_cords: bool,
     shape_offset: (f32, f32),
     shape_size: f64,
-    points_cache: Shape,
     color_cache: ColorCache,
 }
 
@@ -48,10 +48,10 @@ impl Default for MyApp {
             render_mode: 0,
             base_shape: base_cube(),
             base_shape_index: 0,
+            selected_base_shape_index: 0,
             render_cords: false,
             shape_offset: (0.0, 0.0),
             shape_size: 300.0,
-            points_cache: base_cube(),
             color_cache: ColorCache::new(),
         }
     }
@@ -98,7 +98,7 @@ impl eframe::App for MyApp {
         self.screen_shape = shape_pos_calcs.0;
         let mut points = shape_pos_calcs.1.points.clone();
         let connections = shape_pos_calcs.1.connections.clone();
-        self.points_cache = shape_pos_calcs.2;
+        let points_cache = shape_pos_calcs.2;
 
         points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
@@ -158,7 +158,7 @@ impl eframe::App for MyApp {
                 dynamic_render_lines(
                     ui,
                     &Shape {
-                        points: self.points_cache.points.clone(),
+                        points: points_cache.points.clone(),
                         connections: Box::new([]),
                     },
                     self.color_cache.copy(),
@@ -207,15 +207,23 @@ impl eframe::App for MyApp {
                 matches!(self.render_mode, 0),
                 egui::Slider::new(&mut self.color_mode, 0..=1).text("Point Color Mode"),
             );
-            let base_shape_slider =
-                ui.add(egui::Slider::new(&mut self.base_shape_index, 0..=2).text("Base Shape"));
+
+            ui.menu_button("Base Shape", |ui| {
+                ui.selectable_value(&mut self.selected_base_shape_index, 0, "Cube");
+                ui.selectable_value(&mut self.selected_base_shape_index, 1, "Pyramid");
+                ui.selectable_value(&mut self.selected_base_shape_index, 2, "Diamond");
+
+                ui.separator();
+
+                ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
+            });
 
             let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
             let reset_color_cache = ui.add(egui::Button::new("Reset Color Cache"));
 
-            if base_shape_slider.changed() {
-                match self.base_shape_index {
+            if self.selected_base_shape_index != self.base_shape_index {
+                match self.selected_base_shape_index {
                     0 => {
                         self.base_shape = base_cube();
                         self.screen_shape = base_cube();
@@ -230,6 +238,7 @@ impl eframe::App for MyApp {
                     }
                     _ => {}
                 }
+                self.base_shape_index = self.selected_base_shape_index;
             }
 
             if reverse_button.clicked() {
@@ -251,8 +260,7 @@ impl eframe::App for MyApp {
             ui.style_mut().spacing.slider_width = 50.0;
             ui.set_width(200.0);
 
-            ui.set_min_height(ui.available_height() / 2.0);
-            ui.set_height(ui.available_height() / 2.0);
+            ui.set_height_range(Rangef::new(ui.available_height() / 3.0, ui.available_height() / 1.5));
 
             egui::ScrollArea::vertical().show(ui, |ui| {
                 for (i, point) in self.base_shape.points.iter_mut().enumerate() {
@@ -262,21 +270,21 @@ impl eframe::App for MyApp {
                     );
                     ui.horizontal(|ui| {
                         ui.label("X:");
-                        ui.add(
+                        let x_slider = ui.add(
                             egui::Slider::new(&mut point.x, -1.0..=1.0)
                                 .drag_value_speed(0.001)
                                 .show_value(false),
                         )
                         .on_hover_text(point.x.to_string());
                         ui.label("Y:");
-                        ui.add(
+                        let y_slider = ui.add(
                             egui::Slider::new(&mut point.y, -1.0..=1.0)
                                 .drag_value_speed(0.001)
                                 .show_value(false),
                         )
                         .on_hover_text(point.y.to_string());
                         ui.label("Z:");
-                        ui.add(
+                        let z_slider = ui.add(
                             egui::Slider::new(&mut point.z, -1.0..=1.0)
                                 .drag_value_speed(0.001)
                                 .show_value(false),
@@ -289,7 +297,12 @@ impl eframe::App for MyApp {
                             )
                             .clicked()
                         {
+                            self.selected_base_shape_index = 3;
                             points_to_remove.push(i);
+                        }
+
+                        if x_slider.changed() || y_slider.changed() || z_slider.changed() {
+                            self.selected_base_shape_index = 3;
                         }
                     });
 
@@ -316,6 +329,7 @@ impl eframe::App for MyApp {
                     z: 0.0,
                     id: self.base_shape.points.len(),
                 });
+                self.selected_base_shape_index = 3;
             }
         });
 
