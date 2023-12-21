@@ -2,7 +2,8 @@ mod utils;
 
 use eframe::{
     egui,
-    epaint::{Pos2, Vec2}, emath::Rangef,
+    emath::Rangef,
+    epaint::{Pos2, Vec2},
 };
 use rand::Rng;
 use utils::{
@@ -198,9 +199,25 @@ impl eframe::App for MyApp {
         });
 
         // Render ui with sliders
-        egui::Window::new("Settings").show(ctx, |ui| {
-            ui.add(egui::Label::new(format!("Rotation: {}", self.rotation)));
-            ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0).text("Rotation Speed"));
+        egui::Window::new("Options").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.menu_button("Rotation", |ui| {
+                    ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
+                    ui.add(
+                        egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0)
+                            .text("Rotation Speed"),
+                    );
+
+                    ui.separator();
+
+                    let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
+
+                    if reverse_button.clicked() {
+                        self.rotation_direction = !self.rotation_direction;
+                    }
+                });
+                ui.label(self.rotation.to_string());
+            });
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
             ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
             ui.add_enabled(
@@ -208,42 +225,8 @@ impl eframe::App for MyApp {
                 egui::Slider::new(&mut self.color_mode, 0..=1).text("Point Color Mode"),
             );
 
-            ui.menu_button("Base Shape", |ui| {
-                ui.selectable_value(&mut self.selected_base_shape_index, 0, "Cube");
-                ui.selectable_value(&mut self.selected_base_shape_index, 1, "Pyramid");
-                ui.selectable_value(&mut self.selected_base_shape_index, 2, "Diamond");
-
-                ui.separator();
-
-                ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
-            });
-
-            let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
             let reset_color_cache = ui.add(egui::Button::new("Reset Color Cache"));
-
-            if self.selected_base_shape_index != self.base_shape_index {
-                match self.selected_base_shape_index {
-                    0 => {
-                        self.base_shape = base_cube();
-                        self.screen_shape = base_cube();
-                    }
-                    1 => {
-                        self.base_shape = base_pyramid();
-                        self.screen_shape = base_pyramid();
-                    }
-                    2 => {
-                        self.base_shape = base_diamond();
-                        self.screen_shape = base_diamond();
-                    }
-                    _ => {}
-                }
-                self.base_shape_index = self.selected_base_shape_index;
-            }
-
-            if reverse_button.clicked() {
-                self.rotation_direction = !self.rotation_direction;
-            }
 
             if render_cords_button.clicked() {
                 self.render_cords = !self.render_cords;
@@ -256,11 +239,14 @@ impl eframe::App for MyApp {
 
         let mut points_to_remove: Vec<usize> = Vec::new();
 
-        egui::Window::new("Base Shape Modifier").show(ctx, |ui| {
+        egui::Window::new("Shape Modifier").show(ctx, |ui| {
             ui.style_mut().spacing.slider_width = 50.0;
             ui.set_width(200.0);
 
-            ui.set_height_range(Rangef::new(ui.available_height() / 3.0, ui.available_height() / 1.5));
+            ui.set_height_range(Rangef::new(
+                ui.available_height() / 3.0,
+                ui.available_height() / 1.5,
+            ));
 
             egui::ScrollArea::vertical().show(ui, |ui| {
                 for (i, point) in self.base_shape.points.iter_mut().enumerate() {
@@ -270,26 +256,33 @@ impl eframe::App for MyApp {
                     );
                     ui.horizontal(|ui| {
                         ui.label("X:");
-                        let x_slider = ui.add(
-                            egui::Slider::new(&mut point.x, -1.0..=1.0)
-                                .drag_value_speed(0.001)
-                                .show_value(false),
-                        )
-                        .on_hover_text(point.x.to_string());
+                        let x_slider = ui
+                            .add(
+                                egui::Slider::new(&mut point.x, -1.0..=1.0)
+                                    .drag_value_speed(0.001)
+                                    .show_value(false),
+                            )
+                            .on_hover_text(point.x.to_string());
                         ui.label("Y:");
-                        let y_slider = ui.add(
-                            egui::Slider::new(&mut point.y, -1.0..=1.0)
-                                .drag_value_speed(0.001)
-                                .show_value(false),
-                        )
-                        .on_hover_text(point.y.to_string());
+                        let y_slider = ui
+                            .add(
+                                egui::Slider::new(&mut point.y, -1.0..=1.0)
+                                    .drag_value_speed(0.001)
+                                    .show_value(false),
+                            )
+                            .on_hover_text(point.y.to_string());
                         ui.label("Z:");
-                        let z_slider = ui.add(
-                            egui::Slider::new(&mut point.z, -1.0..=1.0)
-                                .drag_value_speed(0.001)
-                                .show_value(false),
-                        )
-                        .on_hover_text(point.z.to_string());
+                        let z_slider = ui
+                            .add(
+                                egui::Slider::new(&mut point.z, -1.0..=1.0)
+                                    .drag_value_speed(0.001)
+                                    .show_value(false),
+                            )
+                            .on_hover_text(point.z.to_string());
+
+                        if x_slider.changed() || y_slider.changed() || z_slider.changed() {
+                            self.selected_base_shape_index = 3;
+                        }
                         if ui
                             .add_enabled(
                                 matches!(self.render_mode, 0 | 2),
@@ -300,37 +293,64 @@ impl eframe::App for MyApp {
                             self.selected_base_shape_index = 3;
                             points_to_remove.push(i);
                         }
-
-                        if x_slider.changed() || y_slider.changed() || z_slider.changed() {
-                            self.selected_base_shape_index = 3;
-                        }
                     });
 
                     ui.separator();
                 }
             });
 
-            if ui
-                .add_enabled(
-                    matches!(self.render_mode, 0 | 2),
-                    egui::Button::new("Add Point"),
-                )
-                .clicked()
-            {
-                self.base_shape.add_point(Point {
-                    x: rng.gen_range(-1.0..=1.0),
-                    y: rng.gen_range(-1.0..=1.0),
-                    z: rng.gen_range(-1.0..=1.0),
-                    id: self.base_shape.points.len(),
+            ui.horizontal(|ui| {
+                ui.menu_button("Base Shape", |ui| {
+                    ui.selectable_value(&mut self.selected_base_shape_index, 0, "Cube");
+                    ui.selectable_value(&mut self.selected_base_shape_index, 1, "Pyramid");
+                    ui.selectable_value(&mut self.selected_base_shape_index, 2, "Diamond");
+
+                    ui.separator();
+
+                    ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
                 });
-                self.screen_shape.add_point(Point {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    id: self.base_shape.points.len(),
-                });
-                self.selected_base_shape_index = 3;
-            }
+
+                if self.selected_base_shape_index != self.base_shape_index {
+                    match self.selected_base_shape_index {
+                        0 => {
+                            self.base_shape = base_cube();
+                            self.screen_shape = base_cube();
+                        }
+                        1 => {
+                            self.base_shape = base_pyramid();
+                            self.screen_shape = base_pyramid();
+                        }
+                        2 => {
+                            self.base_shape = base_diamond();
+                            self.screen_shape = base_diamond();
+                        }
+                        _ => {}
+                    }
+                    self.base_shape_index = self.selected_base_shape_index;
+                }
+
+                if ui
+                    .add_enabled(
+                        matches!(self.render_mode, 0 | 2),
+                        egui::Button::new("Add Point"),
+                    )
+                    .clicked()
+                {
+                    self.base_shape.add_point(Point {
+                        x: rng.gen_range(-1.0..=1.0),
+                        y: rng.gen_range(-1.0..=1.0),
+                        z: rng.gen_range(-1.0..=1.0),
+                        id: self.base_shape.points.len(),
+                    });
+                    self.screen_shape.add_point(Point {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                        id: self.base_shape.points.len(),
+                    });
+                    self.selected_base_shape_index = 3;
+                }
+            });
         });
 
         for point in points_to_remove.iter() {
