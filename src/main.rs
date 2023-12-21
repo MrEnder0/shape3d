@@ -251,43 +251,51 @@ impl eframe::App for MyApp {
             ui.style_mut().spacing.slider_width = 50.0;
             ui.set_width(200.0);
 
-            for (i, point) in self.base_shape.points.iter_mut().enumerate() {
-                ui.colored_label(ColorCache::get_color(&mut self.color_cache, point.id), format!("Point {}", i));
-                ui.horizontal(|ui| {
-                    ui.label("X:");
-                    ui.add(
-                        egui::Slider::new(&mut point.x, -1.0..=1.0)
-                            .drag_value_speed(0.001)
-                            .show_value(false),
-                    )
-                    .on_hover_text(point.x.to_string());
-                    ui.label("Y:");
-                    ui.add(
-                        egui::Slider::new(&mut point.y, -1.0..=1.0)
-                            .drag_value_speed(0.001)
-                            .show_value(false),
-                    )
-                    .on_hover_text(point.y.to_string());
-                    ui.label("Z:");
-                    ui.add(
-                        egui::Slider::new(&mut point.z, -1.0..=1.0)
-                            .drag_value_speed(0.001)
-                            .show_value(false),
-                    )
-                    .on_hover_text(point.z.to_string());
-                    if ui
-                        .add_enabled(
-                            matches!(self.render_mode, 0 | 2),
-                            egui::Button::new("Remove"),
-                        )
-                        .clicked()
-                    {
-                        points_to_remove.push(i);
-                    }
-                });
+            ui.set_min_height(ui.available_height() / 2.0);
+            ui.set_height(ui.available_height() / 2.0);
 
-                ui.separator();
-            }
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                for (i, point) in self.base_shape.points.iter_mut().enumerate() {
+                    ui.colored_label(
+                        ColorCache::get_color(&mut self.color_cache, point.id),
+                        format!("Point {}", i),
+                    );
+                    ui.horizontal(|ui| {
+                        ui.label("X:");
+                        ui.add(
+                            egui::Slider::new(&mut point.x, -1.0..=1.0)
+                                .drag_value_speed(0.001)
+                                .show_value(false),
+                        )
+                        .on_hover_text(point.x.to_string());
+                        ui.label("Y:");
+                        ui.add(
+                            egui::Slider::new(&mut point.y, -1.0..=1.0)
+                                .drag_value_speed(0.001)
+                                .show_value(false),
+                        )
+                        .on_hover_text(point.y.to_string());
+                        ui.label("Z:");
+                        ui.add(
+                            egui::Slider::new(&mut point.z, -1.0..=1.0)
+                                .drag_value_speed(0.001)
+                                .show_value(false),
+                        )
+                        .on_hover_text(point.z.to_string());
+                        if ui
+                            .add_enabled(
+                                matches!(self.render_mode, 0 | 2),
+                                egui::Button::new("Remove"),
+                            )
+                            .clicked()
+                        {
+                            points_to_remove.push(i);
+                        }
+                    });
+
+                    ui.separator();
+                }
+            });
 
             if ui
                 .add_enabled(
@@ -316,7 +324,6 @@ impl eframe::App for MyApp {
             self.screen_shape.remove_point(*point);
         }
 
-        std::thread::sleep(std::time::Duration::from_millis(1));
         ctx.request_repaint()
     }
 }

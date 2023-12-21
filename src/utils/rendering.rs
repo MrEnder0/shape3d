@@ -1,10 +1,10 @@
 use eframe::{
     egui::{self, Ui},
-    epaint::{FontId, Pos2, Stroke, Vec2, Color32},
+    epaint::{Color32, FontId, Pos2, Stroke, Vec2},
 };
 
 use super::{
-    colors::{ColorCache, mix_colors},
+    colors::{mix_colors, ColorCache},
     structs::Shape,
 };
 
@@ -53,7 +53,13 @@ pub fn render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: 
     }
 }
 
-pub fn dynamic_render_lines(ui: &mut Ui, shape: &Shape, mut colors: ColorCache, offset: (f32, f32), shape_size: f32) {
+pub fn dynamic_render_lines(
+    ui: &mut Ui,
+    shape: &Shape,
+    mut colors: ColorCache,
+    offset: (f32, f32),
+    shape_size: f32,
+) {
     for base_point in shape.points.iter() {
         let closest_points = super::math::calc_closest_points(base_point, shape);
 

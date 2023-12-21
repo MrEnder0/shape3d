@@ -34,7 +34,11 @@ impl ColorCache {
 fn gen_color() -> egui::Color32 {
     let mut rng = rand::thread_rng();
 
-    egui::Color32::from_rgb(rng.gen_range(0..=255), rng.gen_range(0..=255), rng.gen_range(0..=255))
+    egui::Color32::from_rgb(
+        rng.gen_range(0..=255),
+        rng.gen_range(0..=255),
+        rng.gen_range(0..=255),
+    )
 }
 
 pub fn mix_colors(colors: Vec<egui::Color32>) -> egui::Color32 {
