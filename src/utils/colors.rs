@@ -1,6 +1,6 @@
 use eframe::egui;
-use rand::Rng;
 use std::collections::HashMap;
+use super::math::generate_random_number;
 
 pub struct ColorCache {
     // ID -> Color
@@ -32,12 +32,10 @@ impl ColorCache {
 }
 
 fn gen_color() -> egui::Color32 {
-    let mut rng = rand::thread_rng();
-
     egui::Color32::from_rgb(
-        rng.gen_range(0..=255),
-        rng.gen_range(0..=255),
-        rng.gen_range(0..=255),
+        generate_random_number(255) as u8,
+        generate_random_number(255) as u8,
+        generate_random_number(255) as u8,
     )
 }
 

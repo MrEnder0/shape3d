@@ -5,11 +5,10 @@ use eframe::{
     emath::Rangef,
     epaint::{Pos2, Vec2},
 };
-use rand::Rng;
 use utils::{
     base_shapes::*,
     colors::ColorCache,
-    math::calc_points_pos,
+    math::{calc_points_pos, generate_random_number},
     rendering::{dynamic_render_lines, render_lines, render_sides},
     structs::*,
 };
@@ -62,8 +61,6 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let mut rng = rand::thread_rng();
-
         // Calculates the offset the shape needs to be in the center of the screen
         let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
@@ -396,9 +393,9 @@ impl eframe::App for MyApp {
                     .clicked()
                 {
                     self.base_shape.add_point(Point {
-                        x: rng.gen_range(-1.0..=1.0),
-                        y: rng.gen_range(-1.0..=1.0),
-                        z: rng.gen_range(-1.0..=1.0),
+                        x: generate_random_number(200) as f64 * 0.01 - 1.0,
+                        y: generate_random_number(200) as f64 * 0.01 - 1.0,
+                        z: generate_random_number(200) as f64 * 0.01 - 1.0,
                         id: self.base_shape.points.len(),
                     });
                     self.screen_shape.add_point(Point {

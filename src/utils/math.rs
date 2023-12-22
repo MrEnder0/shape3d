@@ -1,3 +1,4 @@
+use std::{time::{SystemTime, UNIX_EPOCH}, collections::hash_map::DefaultHasher, hash::{Hasher, Hash}};
 use super::structs::{Point, Shape};
 
 const Z_OFFSET: f64 = -4.0;
@@ -91,4 +92,19 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
 
 fn rad(deg: f64) -> f64 {
     deg * std::f32::consts::PI as f64 / 180.0
+}
+
+pub fn generate_random_number(max: u32) -> u32 {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| std::time::Duration::from_secs(0))
+        .as_millis();
+
+    std::thread::sleep(std::time::Duration::from_micros(1));
+
+    let mut hasher = DefaultHasher::new();
+    now.hash(&mut hasher);
+    let hash = hasher.finish();
+
+    hash as u32 % max
 }
