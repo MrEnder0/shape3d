@@ -29,6 +29,7 @@ struct MyApp {
     rotation_direction: bool,
     color_mode: u8,
     render_mode: u8,
+    selected_render_mode: u8,
     base_shape: Shape,
     base_shape_index: usize,
     selected_base_shape_index: usize,
@@ -47,6 +48,7 @@ impl Default for MyApp {
             rotation_direction: true,
             color_mode: 0,
             render_mode: 0,
+            selected_render_mode: 0,
             base_shape: base_cube(),
             base_shape_index: 0,
             selected_base_shape_index: 0,
@@ -218,8 +220,52 @@ impl eframe::App for MyApp {
                 });
                 ui.label(self.rotation.to_string());
             });
+
+            ui.menu_button("Rendering Mode", |ui| {
+                let points_button = ui.add(
+                    egui::SelectableLabel::new(
+                        self.render_mode == 0,
+                        "Points",
+                    )
+                );
+                let pre_defined_lines = ui.add_enabled(
+                    !matches!(self.base_shape_index, 3),
+                    egui::SelectableLabel::new(self.render_mode == 1, "Pre-Defined Lines"),
+                );
+                let dynamic_lines = ui.add(
+                    egui::SelectableLabel::new(
+                        self.render_mode == 2,
+                        "Dynamic Lines",
+                    )
+                );
+                let experiment_one_button = ui.add_enabled(
+                    !matches!(self.base_shape_index, 3),
+                    egui::SelectableLabel::new(self.render_mode == 3, "Experiment 1"),
+                );
+
+                if points_button.clicked() {
+                    self.render_mode = 0;
+                    self.selected_render_mode = 0;
+                }
+
+                if pre_defined_lines.clicked() {
+                    self.render_mode = 1;
+                    self.selected_render_mode = 1;
+                }
+
+                if dynamic_lines.clicked() {
+                    self.render_mode = 2;
+                    self.selected_render_mode = 2;
+                }
+
+                if experiment_one_button.clicked() {
+                    self.render_mode = 3;
+                    self.selected_render_mode = 3;
+                }
+            });
+
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
-            ui.add(egui::Slider::new(&mut self.render_mode, 0..=3).text("Render Mode"));
+
             ui.add_enabled(
                 matches!(self.render_mode, 0),
                 egui::Slider::new(&mut self.color_mode, 0..=1).text("Point Color Mode"),
