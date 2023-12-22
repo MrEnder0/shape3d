@@ -48,12 +48,12 @@ pub fn calc_point_visibility(point: &Point, shape: &Shape) -> bool {
 }
 */
 
-struct ClosestPoints {
-    id: usize,
-    distance: f64,
-}
-
 pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
+    struct ClosestPoints {
+        id: usize,
+        distance: f64,
+    }
+
     let mut distances: Vec<ClosestPoints> = Vec::new();
 
     if shape.points.len() < 4 {
