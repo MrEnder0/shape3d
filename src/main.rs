@@ -116,6 +116,19 @@ impl eframe::App for MyApp {
             });
         });
 
+        // Detects scroll wheel input for zooming in and out
+        if ctx.input(|i| i.scroll_delta.y).abs() > 0.0 {
+            self.shape_size -= ctx.input(|i| i.scroll_delta.y) as f64;
+
+            if self.shape_size < 50.0 {
+                self.shape_size = 50.0;
+            }
+
+            if self.shape_size > 1000.0 {
+                self.shape_size = 1000.0;
+            }
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             for (_i, point) in points.iter().enumerate() {
                 let color = match self.color_mode {
