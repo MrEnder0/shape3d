@@ -153,6 +153,29 @@ impl eframe::App for MyApp {
                         color,
                     );
                 }
+
+                if self.render_cords {
+                    ui.allocate_ui_at_rect(
+                        egui::Rect::from_min_size(
+                            Pos2 {
+                                x: point.x as f32 + self.shape_offset.0 + 8.0,
+                                y: point.y as f32 + self.shape_offset.1 + 8.0,
+                            },
+                            Vec2 { x: 100.0, y: 10.0 },
+                        ),
+                        |ui| {
+                            ui.colored_label(
+                                color,
+                                format!(
+                                    "X: {:.3}\nY: {:.3}",
+                                    point.x,
+                                    point.y * -1.0
+                                    //z_cord / self.shape_size * 100.0 - 1.0
+                                ),
+                            );
+                        },
+                    );
+                }
             }
 
             if self.render_mode == 1 {
@@ -190,23 +213,6 @@ impl eframe::App for MyApp {
                     self.color_cache.copy(),
                     self.shape_offset,
                 );
-            }
-
-            if self.render_cords {
-                ui.label("Note: These are transformed cords with original z-axis values");
-
-                let mut points_clone = points.clone();
-                points_clone.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
-
-                for point in points_clone.iter() {
-                    ui.label(format!(
-                        "ID:{}, x:{}, y:{}, z:{}",
-                        point.id,
-                        point.x.round(),
-                        point.y.round(),
-                        (point.z / self.shape_size).round()
-                    ));
-                }
             }
         });
 
