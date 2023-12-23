@@ -121,8 +121,8 @@ impl eframe::App for MyApp {
                 self.shape_size = 50.0;
             }
 
-            if self.shape_size > 1000.0 {
-                self.shape_size = 1000.0;
+            if self.shape_size > 1500.0 {
+                self.shape_size = 1500.0;
             }
         }
 
@@ -280,7 +280,7 @@ impl eframe::App for MyApp {
                 }
             });
 
-            ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1000.0).text("Shape Size"));
+            ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1500.0).text("Shape Size"));
 
             ui.add_enabled(
                 matches!(self.render_mode, 0),
@@ -352,7 +352,7 @@ impl eframe::App for MyApp {
                             )
                             .clicked()
                         {
-                            self.selected_base_shape_index = 3;
+                            self.selected_base_shape_index = 4;
                             points_to_remove.push(i);
                         }
                     });
@@ -368,6 +368,13 @@ impl eframe::App for MyApp {
                     ui.selectable_value(&mut self.selected_base_shape_index, 2, "Diamond");
 
                     ui.separator();
+
+                    ui.add_enabled_ui(
+                        matches!(self.render_mode, 0 | 2),
+                        |ui| {
+                            ui.selectable_value(&mut self.selected_base_shape_index, 3, "Random Shape");
+                        },
+                    );
 
                     ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
                 });
@@ -385,6 +392,36 @@ impl eframe::App for MyApp {
                         2 => {
                             self.base_shape = base_diamond();
                             self.screen_shape = base_diamond();
+                        }
+                        3 => {
+                            let times = generate_random_number(10) + 4;
+
+                            self.base_shape = Shape {
+                                points: Box::new([]),
+                                connections: Box::new([]),
+                            };
+
+                            self.screen_shape = Shape {
+                                points: Box::new([]),
+                                connections: Box::new([]),
+                            };
+
+                            for _i in 0..times {
+                                self.base_shape.add_point(Point {
+                                    x: generate_random_number(200) as f64 * 0.01 - 1.0,
+                                    y: generate_random_number(200) as f64 * 0.01 - 1.0,
+                                    z: generate_random_number(200) as f64 * 0.01 - 1.0,
+                                    id: self.base_shape.points.len(),
+                                });
+                                self.screen_shape.add_point(Point {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                    id: self.base_shape.points.len(),
+                                });
+                            }
+
+                            self.selected_base_shape_index = 4;
                         }
                         _ => {}
                     }
@@ -410,7 +447,7 @@ impl eframe::App for MyApp {
                         z: 0.0,
                         id: self.base_shape.points.len(),
                     });
-                    self.selected_base_shape_index = 3;
+                    self.selected_base_shape_index = 4;
                 }
             });
         });
