@@ -8,7 +8,7 @@ use eframe::{
 use utils::{
     base_shapes::*,
     colors::ColorCache,
-    math::{calc_points_pos, generate_random_number},
+    math::{calc_points_pos, generate_random_number, optimize_shape},
     rendering::{dynamic_render_lines, render_lines, render_sides},
     structs::*,
 };
@@ -343,7 +343,7 @@ impl eframe::App for MyApp {
                             .on_hover_text(point.z.to_string());
 
                         if x_slider.changed() || y_slider.changed() || z_slider.changed() {
-                            self.selected_base_shape_index = 3;
+                            self.selected_base_shape_index = 4;
                         }
                         if ui
                             .add_enabled(
@@ -394,7 +394,7 @@ impl eframe::App for MyApp {
                             self.screen_shape = base_diamond();
                         }
                         3 => {
-                            let times = generate_random_number(10) + 4;
+                            let times = generate_random_number(10) + 100;
 
                             self.base_shape = Shape {
                                 points: Box::new([]),
@@ -448,6 +448,17 @@ impl eframe::App for MyApp {
                         id: self.base_shape.points.len(),
                     });
                     self.selected_base_shape_index = 4;
+                }
+
+                if ui
+                    .add_enabled(
+                        matches!(self.render_mode, 0 | 2),
+                        egui::Button::new("WIP Optimize Shape").fill(egui::Color32::from_rgb(150, 0, 0)),
+                    )
+                    .clicked()
+                {
+                    self.base_shape = optimize_shape(&mut self.base_shape.clone());
+                    self.screen_shape = optimize_shape(&mut self.screen_shape.clone());
                 }
             });
         });

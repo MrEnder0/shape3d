@@ -1,4 +1,6 @@
 use std::{time::{SystemTime, UNIX_EPOCH}, collections::hash_map::DefaultHasher, hash::{Hasher, Hash}};
+use eframe::egui::output;
+
 use super::structs::{Point, Shape};
 
 const Z_OFFSET: f64 = -4.0;
@@ -107,4 +109,43 @@ pub fn generate_random_number(max: u32) -> u32 {
     let hash = hasher.finish();
 
     hash as u32 % max
+}
+
+pub fn optimize_shape(shape: &mut Shape) -> Shape {
+    let mut output_points = Vec::new();
+
+    //find any points that are less than 0.1 away from each other
+    for point in shape.points.iter() {
+        let mut is_close = false;
+
+        for second_point in shape.points.iter() {
+            if point.id == second_point.id {
+                continue;
+            }
+
+            if (point.x - second_point.x).abs() < 0.1
+                && (point.y - second_point.y).abs() < 0.1
+                && (point.z - second_point.z).abs() < 0.1
+            {
+                is_close = true;
+                break;
+            }
+        }
+
+        if !is_close {
+            output_points.push(*point);
+        }
+    }
+
+    //shape.points = output_points;
+    //mismatched types
+    //expected struct `std::boxed::Box<[utils::structs::Point]>`
+    //found struct `std::vec::Vec<utils::structs::Point>`
+
+    let output_final = output_points.into_boxed_slice();
+
+    Shape {
+        points: output_final,
+        connections: shape.connections.clone(),
+    }
 }
