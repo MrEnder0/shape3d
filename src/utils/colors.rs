@@ -1,6 +1,6 @@
+use super::math::generate_random_number;
 use eframe::egui;
 use std::collections::HashMap;
-use super::math::generate_random_number;
 
 pub struct ColorCache {
     // ID -> Color

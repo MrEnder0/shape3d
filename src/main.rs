@@ -22,6 +22,7 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MyApp {
+    //first_frame: bool,
     screen_shape: Shape,
     rotation: f64,
     rotation_speed: f64,
@@ -41,6 +42,7 @@ struct MyApp {
 impl Default for MyApp {
     fn default() -> Self {
         Self {
+            //first_frame: true,
             screen_shape: base_cube(),
             rotation: 0.0,
             rotation_speed: 0.5,
@@ -61,6 +63,20 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        /* Color cache pre-generation currently disabled due to application being focused on smaller scale shapes
+        if self.first_frame {
+            println!("Welcome to Shape 3D!");
+            println!("We are currently generating a color cache to remove any hitching when adding new points.");
+
+            for i in 0..500 {
+                self.color_cache.get_color(i);
+                print!("\r{}% Done ({} out of {}) ", i / 10, i, 500);
+            }
+
+            self.first_frame = false;
+        }
+        */
+
         // Calculates the offset the shape needs to be in the center of the screen
         let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
@@ -169,8 +185,7 @@ impl eframe::App for MyApp {
                                 format!(
                                     "X: {:.3}\nY: {:.3}",
                                     point.x,
-                                    point.y * -1.0
-                                    //z_cord / self.shape_size * 100.0 - 1.0
+                                    point.y * -1.0 //z_cord / self.shape_size * 100.0 - 1.0
                                 ),
                             );
                         },
@@ -238,22 +253,16 @@ impl eframe::App for MyApp {
             });
 
             ui.menu_button("Rendering Mode", |ui| {
-                let points_button = ui.add(
-                    egui::SelectableLabel::new(
-                        self.render_mode == 0,
-                        "Points",
-                    )
-                );
+                let points_button =
+                    ui.add(egui::SelectableLabel::new(self.render_mode == 0, "Points"));
                 let pre_defined_lines = ui.add_enabled(
                     !matches!(self.base_shape_index, 3),
                     egui::SelectableLabel::new(self.render_mode == 1, "Pre-Defined Lines"),
                 );
-                let dynamic_lines = ui.add(
-                    egui::SelectableLabel::new(
-                        self.render_mode == 2,
-                        "Dynamic Lines",
-                    )
-                );
+                let dynamic_lines = ui.add(egui::SelectableLabel::new(
+                    self.render_mode == 2,
+                    "Dynamic Lines",
+                ));
                 let experiment_one_button = ui.add_enabled(
                     !matches!(self.base_shape_index, 3),
                     egui::SelectableLabel::new(self.render_mode == 3, "Experiment 1"),
@@ -369,12 +378,9 @@ impl eframe::App for MyApp {
 
                     ui.separator();
 
-                    ui.add_enabled_ui(
-                        matches!(self.render_mode, 0 | 2),
-                        |ui| {
-                            ui.selectable_value(&mut self.selected_base_shape_index, 3, "Random Shape");
-                        },
-                    );
+                    ui.add_enabled_ui(matches!(self.render_mode, 0 | 2), |ui| {
+                        ui.selectable_value(&mut self.selected_base_shape_index, 3, "Random Shape");
+                    });
 
                     ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
                 });
@@ -453,7 +459,8 @@ impl eframe::App for MyApp {
                 if ui
                     .add_enabled(
                         matches!(self.render_mode, 0 | 2),
-                        egui::Button::new("WIP Optimize Shape").fill(egui::Color32::from_rgb(150, 0, 0)),
+                        egui::Button::new("WIP Optimize Shape")
+                            .fill(egui::Color32::from_rgb(150, 0, 0)),
                     )
                     .clicked()
                 {
@@ -470,5 +477,9 @@ impl eframe::App for MyApp {
 
         std::thread::sleep(std::time::Duration::from_millis(10));
         ctx.request_repaint()
+    }
+
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        println!("Goodbye!");
     }
 }

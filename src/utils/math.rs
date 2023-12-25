@@ -1,5 +1,8 @@
-use std::{time::{SystemTime, UNIX_EPOCH}, collections::hash_map::DefaultHasher, hash::{Hasher, Hash}};
-use eframe::egui::output;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use super::structs::{Point, Shape};
 
