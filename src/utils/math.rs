@@ -105,7 +105,7 @@ pub fn generate_random_number(max: u32) -> u32 {
         .unwrap_or_else(|_| std::time::Duration::from_secs(0))
         .as_millis();
 
-    std::thread::sleep(std::time::Duration::from_micros(1));
+    std::thread::sleep(std::time::Duration::from_millis(1));
 
     let mut hasher = DefaultHasher::new();
     now.hash(&mut hasher);
