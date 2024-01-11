@@ -3,6 +3,7 @@ pub struct Shape {
     pub connections: Box<[Connection]>,
 }
 
+#[derive(Clone, PartialEq, Copy)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -10,6 +11,7 @@ pub struct Point {
     pub id: usize,
 }
 
+#[derive(Clone, PartialEq, Copy)]
 pub struct Connection {
     pub point1: usize,
     pub point2: usize,
@@ -67,37 +69,3 @@ impl AddPoint for Shape {
             .collect::<Box<[Point]>>();
     }
 }
-
-impl PartialEq for Shape {
-    fn eq(&self, other: &Self) -> bool {
-        self.points == other.points && self.connections == other.connections
-    }
-}
-
-impl Clone for Point {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl PartialEq for Point {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y && self.z == other.z && self.id == other.id
-    }
-}
-
-impl Copy for Point {}
-
-impl Clone for Connection {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl PartialEq for Connection {
-    fn eq(&self, other: &Self) -> bool {
-        self.point1 == other.point1 && self.point2 == other.point2
-    }
-}
-
-impl Copy for Connection {}

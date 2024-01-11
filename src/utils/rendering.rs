@@ -65,7 +65,6 @@ pub fn dynamic_render_lines(
         let closest_points = super::math::calc_closest_points(base_point, shape);
 
         if closest_points.is_empty() {
-            // Do text at center of screen
             ui.painter().text(
                 Pos2 {
                     x: ui.available_width() / 2.0,

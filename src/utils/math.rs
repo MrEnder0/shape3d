@@ -60,11 +60,11 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
         distance: f64,
     }
 
-    let mut distances: Vec<ClosestPoints> = Vec::new();
-
     if shape.points.len() < 4 {
         return Vec::new();
     }
+
+    let mut distances: Vec<ClosestPoints> = Vec::new();
 
     for point in shape.points.iter() {
         let distance = ((point.x - base_point.x).powi(2)

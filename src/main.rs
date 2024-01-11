@@ -143,7 +143,7 @@ impl eframe::App for MyApp {
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            for (_i, point) in points.iter().enumerate() {
+            for point in points.iter() {
                 let color = match self.color_mode {
                     0 => ColorCache::get_color(&mut self.color_cache, point.id),
                     1 => {
@@ -320,6 +320,14 @@ impl eframe::App for MyApp {
             ));
 
             egui::ScrollArea::vertical().show(ui, |ui| {
+                let highest_point_id = self.base_shape.points.iter().fold(0, |acc, point| {
+                    if point.id > acc {
+                        point.id
+                    } else {
+                        acc
+                    }
+                });
+
                 for (i, point) in self.base_shape.points.iter_mut().enumerate() {
                     ui.colored_label(
                         ColorCache::get_color(&mut self.color_cache, point.id),
@@ -354,11 +362,19 @@ impl eframe::App for MyApp {
                         if x_slider.changed() || y_slider.changed() || z_slider.changed() {
                             self.selected_base_shape_index = 4;
                         }
-                        if ui
-                            .add_enabled(
-                                matches!(self.render_mode, 0 | 2),
-                                egui::Button::new("Remove"),
-                            )
+                        if point.id == highest_point_id {
+                            if ui
+                                .add_enabled(
+                                    matches!(self.render_mode, 0 | 2),
+                                    egui::Button::new("Remove"),
+                                )
+                                .clicked()
+                            {
+                                self.selected_base_shape_index = 4;
+                                points_to_remove.push(i);
+                            }
+                        } else if ui
+                            .add_enabled(matches!(self.render_mode, 0), egui::Button::new("Remove"))
                             .clicked()
                         {
                             self.selected_base_shape_index = 4;
