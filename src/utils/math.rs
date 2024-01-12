@@ -10,7 +10,9 @@ const Z_OFFSET: f64 = -4.0;
 
 pub fn calc_points_pos(
     screen_shape: &mut Shape,
-    rotation: f64,
+    rotation_x: f64,
+    rotation_y: f64,
+    rotation_z: f64,
     base_shape: Shape,
     shape_size: f64,
 ) -> (Shape, Shape, Shape) {
@@ -20,12 +22,13 @@ pub fn calc_points_pos(
     let itter_clone = screen_shape.points.clone();
 
     for (i, _point) in itter_clone.iter().enumerate() {
-        screen_shape.points[i].x = base_shape.points[i].x * rad(rotation).cos()
-            - base_shape.points[i].z * rad(rotation).sin();
-        screen_shape.points[i].y = base_shape.points[i].y;
-        screen_shape.points[i].z = base_shape.points[i].x * rad(rotation).sin()
-            + base_shape.points[i].z * rad(rotation).cos()
-            + Z_OFFSET;
+        let point = rotate_x(&base_shape.points[i], rotation_x);
+        let point = rotate_y(&point, rotation_y);
+        let point = rotate_z(&point, rotation_z);
+
+        screen_shape.points[i].x = point.x;
+        screen_shape.points[i].y = point.y;
+        screen_shape.points[i].z = point.z + Z_OFFSET;
 
         shape_cache.points[i].x = screen_shape.points[i].x;
         shape_cache.points[i].y = screen_shape.points[i].y;
@@ -42,6 +45,33 @@ pub fn calc_points_pos(
     shape_cache.connections = Box::new([]);
 
     (screen_shape.clone(), projected_shape, shape_cache)
+}
+
+fn rotate_x(point: &Point, angle: f64) -> Point {
+    Point {
+        id: point.id,
+        x: point.x,
+        y: point.y * rad(angle).cos() - point.z * rad(angle).sin(),
+        z: point.y * rad(angle).sin() + point.z * rad(angle).cos(),
+    }
+}
+
+fn rotate_y(point: &Point, angle: f64) -> Point {
+    Point {
+        id: point.id,
+        x: point.x * rad(angle).cos() + point.z * rad(angle).sin(),
+        y: point.y,
+        z: -point.x * rad(angle).sin() + point.z * rad(angle).cos(),
+    }
+}
+
+fn rotate_z(point: &Point, angle: f64) -> Point {
+    Point {
+        id: point.id,
+        x: point.x * rad(angle).cos() - point.y * rad(angle).sin(),
+        y: point.x * rad(angle).sin() + point.y * rad(angle).cos(),
+        z: point.z,
+    }
 }
 
 /*

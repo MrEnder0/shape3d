@@ -24,9 +24,8 @@ fn main() -> Result<(), eframe::Error> {
 struct MyApp {
     //first_frame: bool,
     screen_shape: Shape,
-    rotation: f64,
+    rotation: (f64, f64, f64),
     rotation_speed: f64,
-    rotation_direction: bool,
     color_mode: u8,
     render_mode: u8,
     selected_render_mode: u8,
@@ -44,9 +43,8 @@ impl Default for MyApp {
         Self {
             //first_frame: true,
             screen_shape: base_cube(),
-            rotation: 0.0,
+            rotation: (0.0, 0.0, 0.0),
             rotation_speed: 0.5,
-            rotation_direction: true,
             color_mode: 0,
             render_mode: 0,
             selected_render_mode: 0,
@@ -86,49 +84,6 @@ impl eframe::App for MyApp {
             (window_size.1 / 2.0) - (self.shape_size / 2.0) as f32 + self.shape_size as f32 / 2.0,
         );
 
-        // Updates the shape
-        match self.rotation_direction {
-            true => {
-                self.rotation += self.rotation_speed;
-
-                if self.rotation >= 360.0 {
-                    self.rotation = 0.0;
-                }
-            }
-            false => {
-                self.rotation -= self.rotation_speed;
-
-                if self.rotation <= 0.0 {
-                    self.rotation = 360.0;
-                }
-            }
-        }
-
-        let shape_pos_calcs = calc_points_pos(
-            &mut self.screen_shape,
-            self.rotation,
-            self.base_shape.clone(),
-            self.shape_size,
-        );
-
-        self.screen_shape = shape_pos_calcs.0;
-        let mut points = shape_pos_calcs.1.points.clone();
-        let connections = shape_pos_calcs.1.connections.clone();
-        let points_cache = shape_pos_calcs.2;
-
-        points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
-
-        // Used to drag the shape, must be rendered before everything else so its hidden behind the shape
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.centered_and_justified(|ui| {
-                ui.add(
-                    egui::DragValue::new(&mut self.rotation)
-                        .max_decimals(2)
-                        .speed(0.3),
-                )
-            });
-        });
-
         // Detects scroll wheel input for zooming in and out
         if ctx.input(|i| i.scroll_delta.y).abs() > 0.0 {
             self.shape_size -= ctx.input(|i| i.scroll_delta.y) as f64;
@@ -141,6 +96,48 @@ impl eframe::App for MyApp {
                 self.shape_size = 1500.0;
             }
         }
+
+        // Detects input for rotating the shape
+        if ctx.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+            self.rotation.0 -= self.rotation_speed * 10.0;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+            self.rotation.0 += self.rotation_speed * 10.0;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
+            self.rotation.1 += self.rotation_speed * 10.0;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
+            self.rotation.1 -= self.rotation_speed * 10.0;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Q)) {
+            self.rotation.2 -= self.rotation_speed * 10.0;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::E)) {
+            self.rotation.2 += self.rotation_speed * 10.0;
+        }
+
+        let normalized_rotation = (
+            self.rotation.0 % 360.0,
+            self.rotation.1 % 360.0,
+            self.rotation.2 % 360.0,
+        );
+
+        let shape_pos_calcs = calc_points_pos(
+            &mut self.screen_shape,
+            normalized_rotation.0,
+            normalized_rotation.1,
+            normalized_rotation.2,
+            self.base_shape.clone(),
+            self.shape_size,
+        );
+
+        self.screen_shape = shape_pos_calcs.0;
+        let mut points = shape_pos_calcs.1.points.clone();
+        let connections = shape_pos_calcs.1.connections.clone();
+        let points_cache = shape_pos_calcs.2;
+
+        points.sort_by(|a, b| a.z.partial_cmp(&b.z).unwrap());
 
         egui::CentralPanel::default().show(ctx, |ui| {
             for point in points.iter() {
@@ -235,21 +232,28 @@ impl eframe::App for MyApp {
         egui::Window::new("Options").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.menu_button("Rotation", |ui| {
-                    ui.add(egui::Slider::new(&mut self.rotation, 0.0..=360.0).text("Rotation"));
-                    ui.add(
-                        egui::Slider::new(&mut self.rotation_speed, 0.0..=5.0)
-                            .text("Rotation Speed"),
-                    );
+                    //have rotation sliders that display the normalized rotation but modify the actual rotation
+                    ui.add(egui::Label::new(format!(
+                        "X: {:.2}",
+                        normalized_rotation.0
+                    )));
+                    ui.add(egui::DragValue::new(&mut self.rotation.0).speed(0.1).max_decimals(2));
+                    ui.add(egui::Label::new(format!(
+                        "Y: {:.2}",
+                        normalized_rotation.1
+                    )));
+                    ui.add(egui::DragValue::new(&mut self.rotation.1).speed(0.1).max_decimals(2));
+                    ui.add(egui::Label::new(format!(
+                        "Z: {:.2}",
+                        normalized_rotation.2
+                    )));
+                    ui.add(egui::DragValue::new(&mut self.rotation.2).speed(0.1).max_decimals(2));
 
                     ui.separator();
 
-                    let reverse_button = ui.add(egui::Button::new("Flip Rotation"));
+                    ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=10.0).text("Speed"));
 
-                    if reverse_button.clicked() {
-                        self.rotation_direction = !self.rotation_direction;
-                    }
                 });
-                ui.label(self.rotation.to_string());
             });
 
             ui.menu_button("Rendering Mode", |ui| {
@@ -416,7 +420,7 @@ impl eframe::App for MyApp {
                             self.screen_shape = base_diamond();
                         }
                         3 => {
-                            let times = generate_random_number(10) + 100;
+                            let times = generate_random_number(6) + 4;
 
                             self.base_shape = Shape {
                                 points: Box::new([]),
