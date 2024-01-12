@@ -22,11 +22,10 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MyApp {
-    //first_frame: bool,
     screen_shape: Shape,
     rotation: (f64, f64, f64),
-    rotation_speed: f64,
-    color_mode: u8,
+    rotation_volocity: (f64, f64, f64),
+    max_rotation_volocity: f64,
     render_mode: u8,
     selected_render_mode: u8,
     base_shape: Shape,
@@ -41,11 +40,10 @@ struct MyApp {
 impl Default for MyApp {
     fn default() -> Self {
         Self {
-            //first_frame: true,
             screen_shape: base_cube(),
             rotation: (0.0, 0.0, 0.0),
-            rotation_speed: 0.5,
-            color_mode: 0,
+            rotation_volocity: (0.0, 0.0, 0.0),
+            max_rotation_volocity: 10.0,
             render_mode: 0,
             selected_render_mode: 0,
             base_shape: base_cube(),
@@ -61,20 +59,6 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        /* Color cache pre-generation currently disabled due to application being focused on smaller scale shapes
-        if self.first_frame {
-            println!("Welcome to Shape 3D!");
-            println!("We are currently generating a color cache to remove any hitching when adding new points.");
-
-            for i in 0..500 {
-                self.color_cache.get_color(i);
-                print!("\r{}% Done ({} out of {}) ", i / 10, i, 500);
-            }
-
-            self.first_frame = false;
-        }
-        */
-
         // Calculates the offset the shape needs to be in the center of the screen
         let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
@@ -99,23 +83,46 @@ impl eframe::App for MyApp {
 
         // Detects input for rotating the shape
         if ctx.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-            self.rotation.0 -= self.rotation_speed * 10.0;
+            self.rotation_volocity.0 -= 0.3 * (self.rotation_volocity.0.abs() % 10.0 * 0.5 + 1.0);
         }
         if ctx.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-            self.rotation.0 += self.rotation_speed * 10.0;
+            self.rotation_volocity.0 += 0.3 * (self.rotation_volocity.0.abs() % 10.0 * 0.5 + 1.0);
         }
         if ctx.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
-            self.rotation.1 += self.rotation_speed * 10.0;
+            self.rotation_volocity.1 += 0.3 * (self.rotation_volocity.1.abs() % 10.0 * 0.5 + 1.0);
         }
         if ctx.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
-            self.rotation.1 -= self.rotation_speed * 10.0;
+            self.rotation_volocity.1 -= 0.3 * (self.rotation_volocity.1.abs() % 10.0 * 0.5 + 1.0);
         }
         if ctx.input(|i| i.key_pressed(egui::Key::Q)) {
-            self.rotation.2 -= self.rotation_speed * 10.0;
+            self.rotation_volocity.2 += 0.3 * (self.rotation_volocity.2.abs() % 10.0 * 0.5 + 1.0);
         }
         if ctx.input(|i| i.key_pressed(egui::Key::E)) {
-            self.rotation.2 += self.rotation_speed * 10.0;
+            self.rotation_volocity.2 -= 0.3 * (self.rotation_volocity.2.abs() % 10.0 * 0.5 + 1.0);
         }
+
+        self.rotation_volocity.0 = self.rotation_volocity.0.clamp(
+            self.max_rotation_volocity * -1.0,
+            self.max_rotation_volocity,
+        );
+        self.rotation_volocity.1 = self.rotation_volocity.1.clamp(
+            self.max_rotation_volocity * -1.0,
+            self.max_rotation_volocity,
+        );
+        self.rotation_volocity.2 = self.rotation_volocity.2.clamp(
+            self.max_rotation_volocity * -1.0,
+            self.max_rotation_volocity,
+        );
+
+        self.rotation = (
+            self.rotation.0 + self.rotation_volocity.0,
+            self.rotation.1 + self.rotation_volocity.1,
+            self.rotation.2 + self.rotation_volocity.2,
+        );
+
+        self.rotation_volocity.0 *= 0.98;
+        self.rotation_volocity.1 *= 0.98;
+        self.rotation_volocity.2 *= 0.98;
 
         let normalized_rotation = (
             self.rotation.0 % 360.0,
@@ -141,17 +148,8 @@ impl eframe::App for MyApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             for point in points.iter() {
-                let color = match self.color_mode {
-                    0 => ColorCache::get_color(&mut self.color_cache, point.id),
-                    1 => {
-                        if point.z > -4.8 * self.shape_size {
-                            egui::Color32::from_rgb(0, 255, 0)
-                        } else {
-                            egui::Color32::from_rgb(255, 0, 0)
-                        }
-                    }
-                    _ => egui::Rgba::TRANSPARENT.into(),
-                };
+                let color = 
+                    ColorCache::get_color(&mut self.color_cache, point.id);
 
                 if self.render_mode == 0 {
                     ui.painter().rect_filled(
@@ -237,21 +235,21 @@ impl eframe::App for MyApp {
                         "X: {:.2}",
                         normalized_rotation.0
                     )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.0).speed(0.1).max_decimals(2));
+                    ui.add(egui::DragValue::new(&mut self.rotation.0).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
                     ui.add(egui::Label::new(format!(
                         "Y: {:.2}",
                         normalized_rotation.1
                     )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.1).speed(0.1).max_decimals(2));
+                    ui.add(egui::DragValue::new(&mut self.rotation.1).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
                     ui.add(egui::Label::new(format!(
                         "Z: {:.2}",
                         normalized_rotation.2
                     )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.2).speed(0.1).max_decimals(2));
+                    ui.add(egui::DragValue::new(&mut self.rotation.2).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
 
                     ui.separator();
 
-                    ui.add(egui::Slider::new(&mut self.rotation_speed, 0.0..=10.0).text("Speed"));
+                    ui.add(egui::Slider::new(&mut self.max_rotation_volocity, 1.0..=50.0).text("Max Volocity"));
 
                 });
             });
@@ -294,11 +292,6 @@ impl eframe::App for MyApp {
             });
 
             ui.add(egui::Slider::new(&mut self.shape_size, 50.0..=1500.0).text("Shape Size"));
-
-            ui.add_enabled(
-                matches!(self.render_mode, 0),
-                egui::Slider::new(&mut self.color_mode, 0..=1).text("Point Color Mode"),
-            );
 
             let render_cords_button = ui.add(egui::Button::new("Render Cords"));
             let reset_color_cache = ui.add(egui::Button::new("Reset Color Cache"));
