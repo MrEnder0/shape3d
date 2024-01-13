@@ -82,24 +82,12 @@ impl eframe::App for MyApp {
         }
 
         // Detects input for rotating the shape
-        if ctx.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-            self.rotation_volocity.0 -= 0.3 * (self.rotation_volocity.0.abs() % 10.0 * 0.5 + 1.0);
-        }
-        if ctx.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-            self.rotation_volocity.0 += 0.3 * (self.rotation_volocity.0.abs() % 10.0 * 0.5 + 1.0);
-        }
-        if ctx.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
-            self.rotation_volocity.1 += 0.3 * (self.rotation_volocity.1.abs() % 10.0 * 0.5 + 1.0);
-        }
-        if ctx.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
-            self.rotation_volocity.1 -= 0.3 * (self.rotation_volocity.1.abs() % 10.0 * 0.5 + 1.0);
-        }
-        if ctx.input(|i| i.key_pressed(egui::Key::Q)) {
-            self.rotation_volocity.2 += 0.3 * (self.rotation_volocity.2.abs() % 10.0 * 0.5 + 1.0);
-        }
-        if ctx.input(|i| i.key_pressed(egui::Key::E)) {
-            self.rotation_volocity.2 -= 0.3 * (self.rotation_volocity.2.abs() % 10.0 * 0.5 + 1.0);
-        }
+        handle_rotation_input(ctx, egui::Key::ArrowUp, &mut self.rotation_volocity.0 , false);
+        handle_rotation_input(ctx, egui::Key::ArrowDown, &mut self.rotation_volocity.0, true);
+        handle_rotation_input(ctx, egui::Key::ArrowLeft, &mut self.rotation_volocity.1, false);
+        handle_rotation_input(ctx, egui::Key::ArrowRight, &mut self.rotation_volocity.1, true);
+        handle_rotation_input(ctx, egui::Key::Q, &mut self.rotation_volocity.2, false);
+        handle_rotation_input(ctx, egui::Key::E, &mut self.rotation_volocity.2, true);
 
         self.rotation_volocity.0 = self.rotation_volocity.0.clamp(
             self.max_rotation_volocity * -1.0,
@@ -230,7 +218,6 @@ impl eframe::App for MyApp {
         egui::Window::new("Options").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.menu_button("Rotation", |ui| {
-                    //have rotation sliders that display the normalized rotation but modify the actual rotation
                     ui.add(egui::Label::new(format!(
                         "X: {:.2}",
                         normalized_rotation.0
@@ -494,5 +481,19 @@ impl eframe::App for MyApp {
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         println!("Goodbye!");
+    }
+}
+
+fn handle_rotation_input(ctx: &egui::Context, key: egui::Key, rotation_velocity: &mut f64, negative: bool) {
+    if ctx.input(|i| i.key_pressed(key)) {
+        match negative {
+            true => {
+                *rotation_velocity -= 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
+            }
+            false => {
+                *rotation_velocity += 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
+            }
+            
+        }
     }
 }
