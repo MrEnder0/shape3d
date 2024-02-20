@@ -69,8 +69,8 @@ impl eframe::App for MyApp {
         );
 
         // Detects scroll wheel input for zooming in and out
-        if ctx.input(|i| i.scroll_delta.y).abs() > 0.0 {
-            self.shape_size -= ctx.input(|i| i.scroll_delta.y) as f64;
+        if ctx.input(|i| i.raw_scroll_delta.y).abs() > 0.0 {
+            self.shape_size -= ctx.input(|i| i.raw_scroll_delta.y) as f64;
 
             if self.shape_size < 50.0 {
                 self.shape_size = 50.0;
