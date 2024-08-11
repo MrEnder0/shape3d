@@ -271,3 +271,61 @@ pub fn base_diamond() -> Shape {
         ]),
     }
 }
+
+pub fn base_tetrahedron() -> Shape {
+    Shape {
+        points: [
+            Point {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+                id: 0,
+            },
+            Point {
+                x: -1.0,
+                y: -1.0,
+                z: 1.0,
+                id: 1,
+            },
+            Point {
+                x: 1.0,
+                y: -1.0,
+                z: -1.0,
+                id: 2,
+            },
+            Point {
+                x: -1.0,
+                y: 1.0,
+                z: -1.0,
+                id: 3,
+            },
+        ]
+        .into(),
+        connections: Box::new([
+            Connection {
+                point1: 0,
+                point2: 1,
+            },
+            Connection {
+                point1: 0,
+                point2: 2,
+            },
+            Connection {
+                point1: 0,
+                point2: 3,
+            },
+            Connection {
+                point1: 1,
+                point2: 2,
+            },
+            Connection {
+                point1: 2,
+                point2: 3,
+            },
+            Connection {
+                point1: 3,
+                point2: 1,
+            },
+        ]),
+    }
+}

@@ -18,7 +18,7 @@ fn main() -> Result<(), eframe::Error> {
         viewport: egui::ViewportBuilder::default().with_maximized(true),
         ..Default::default()
     };
-    eframe::run_native("3D Shape", options, Box::new(|_cc| Box::<MyApp>::default()))
+    eframe::run_native("3D Shape", options, Box::new(|_cc| Ok(Box::<MyApp>::default())))
 }
 
 struct MyApp {
@@ -72,22 +72,10 @@ impl eframe::App for MyApp {
         if ctx.input(|i| i.raw_scroll_delta.y).abs() > 0.0 {
             self.shape_size -= ctx.input(|i| i.raw_scroll_delta.y) as f64;
 
-            if self.shape_size < 50.0 {
-                self.shape_size = 50.0;
-            }
-
-            if self.shape_size > 1500.0 {
-                self.shape_size = 1500.0;
-            }
+            self.shape_size = self.shape_size.clamp(50.0, 1500.0);
         }
 
-        // Detects input for rotating the shape
-        handle_rotation_input(ctx, egui::Key::ArrowUp, &mut self.rotation_volocity.0 , false);
-        handle_rotation_input(ctx, egui::Key::ArrowDown, &mut self.rotation_volocity.0, true);
-        handle_rotation_input(ctx, egui::Key::ArrowLeft, &mut self.rotation_volocity.1, false);
-        handle_rotation_input(ctx, egui::Key::ArrowRight, &mut self.rotation_volocity.1, true);
-        handle_rotation_input(ctx, egui::Key::Q, &mut self.rotation_volocity.2, false);
-        handle_rotation_input(ctx, egui::Key::E, &mut self.rotation_volocity.2, true);
+        handle_rotation_input(ctx, &mut self.rotation_volocity);
 
         self.rotation_volocity.0 = self.rotation_volocity.0.clamp(
             self.max_rotation_volocity * -1.0,
@@ -139,6 +127,7 @@ impl eframe::App for MyApp {
                 let color = 
                     ColorCache::get_color(&mut self.color_cache, point.id);
 
+                // Rendering mode 0 (Points)
                 if self.render_mode == 0 {
                     ui.painter().rect_filled(
                         egui::Rect::from_min_size(
@@ -344,7 +333,7 @@ impl eframe::App for MyApp {
                             .on_hover_text(point.z.to_string());
 
                         if x_slider.changed() || y_slider.changed() || z_slider.changed() {
-                            self.selected_base_shape_index = 4;
+                            self.selected_base_shape_index = 5;
                         }
                         if point.id == highest_point_id {
                             if ui
@@ -354,14 +343,14 @@ impl eframe::App for MyApp {
                                 )
                                 .clicked()
                             {
-                                self.selected_base_shape_index = 4;
+                                self.selected_base_shape_index = 5;
                                 points_to_remove.push(i);
                             }
                         } else if ui
                             .add_enabled(matches!(self.render_mode, 0), egui::Button::new("Remove"))
                             .clicked()
                         {
-                            self.selected_base_shape_index = 4;
+                            self.selected_base_shape_index = 5;
                             points_to_remove.push(i);
                         }
                     });
@@ -375,14 +364,15 @@ impl eframe::App for MyApp {
                     ui.selectable_value(&mut self.selected_base_shape_index, 0, "Cube");
                     ui.selectable_value(&mut self.selected_base_shape_index, 1, "Pyramid");
                     ui.selectable_value(&mut self.selected_base_shape_index, 2, "Diamond");
+                    ui.selectable_value(&mut self.selected_base_shape_index, 3, "Tetrahedron");
 
                     ui.separator();
 
                     ui.add_enabled_ui(matches!(self.render_mode, 0 | 2), |ui| {
-                        ui.selectable_value(&mut self.selected_base_shape_index, 3, "Random Shape");
+                        ui.selectable_value(&mut self.selected_base_shape_index, 4, "Random Shape");
                     });
 
-                    ui.selectable_value(&mut self.base_shape_index, 3, "Custom");
+                    ui.selectable_value(&mut self.base_shape_index, 4, "Custom");
                 });
 
                 if self.selected_base_shape_index != self.base_shape_index {
@@ -400,6 +390,10 @@ impl eframe::App for MyApp {
                             self.screen_shape = base_diamond();
                         }
                         3 => {
+                            self.base_shape = base_tetrahedron();
+                            self.screen_shape = base_tetrahedron();
+                        }
+                        4 => {
                             let times = generate_random_number(6) + 4;
 
                             self.base_shape = Shape {
@@ -427,7 +421,7 @@ impl eframe::App for MyApp {
                                 });
                             }
 
-                            self.selected_base_shape_index = 4;
+                            self.selected_base_shape_index = 5;
                         }
                         _ => {}
                     }
@@ -453,7 +447,7 @@ impl eframe::App for MyApp {
                         z: 0.0,
                         id: self.base_shape.points.len(),
                     });
-                    self.selected_base_shape_index = 4;
+                    self.selected_base_shape_index = 5;
                 }
 
                 if ui
@@ -484,16 +478,25 @@ impl eframe::App for MyApp {
     }
 }
 
-fn handle_rotation_input(ctx: &egui::Context, key: egui::Key, rotation_velocity: &mut f64, negative: bool) {
-    if ctx.input(|i| i.key_pressed(key)) {
-        match negative {
-            true => {
-                *rotation_velocity -= 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
+fn handle_rotation_input(ctx: &egui::Context, rotation_velocity: &mut (f64, f64, f64)) {
+    fn handle_rotation_key(ctx: &egui::Context, key: egui::Key, rotation_velocity: &mut f64, negative: bool) {
+        if ctx.input(|i| i.key_pressed(key)) {
+            match negative {
+                true => {
+                    *rotation_velocity -= 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
+                }
+                false => {
+                    *rotation_velocity += 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
+                }
+                
             }
-            false => {
-                *rotation_velocity += 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
-            }
-            
         }
     }
+
+    handle_rotation_key(ctx, egui::Key::ArrowUp, &mut rotation_velocity.0, false);
+    handle_rotation_key(ctx, egui::Key::ArrowDown, &mut rotation_velocity.0, true);
+    handle_rotation_key(ctx, egui::Key::ArrowLeft, &mut rotation_velocity.1, false);
+    handle_rotation_key(ctx, egui::Key::ArrowRight, &mut rotation_velocity.1, true);
+    handle_rotation_key(ctx, egui::Key::Q, &mut rotation_velocity.2, false);
+    handle_rotation_key(ctx, egui::Key::E, &mut rotation_velocity.2, true);
 }
