@@ -160,6 +160,14 @@ pub fn optimize_shape(shape: &mut Shape) -> Shape {
                 && (point.y - second_point.y).abs() < 0.1
                 && (point.z - second_point.z).abs() < 0.1
             {
+                let avg_point = Point {
+                    id: point.id,
+                    x: (point.x + second_point.x) / 2.0,
+                    y: (point.y + second_point.y) / 2.0,
+                    z: (point.z + second_point.z) / 2.0,
+                };
+
+                output_points.push(avg_point);
                 is_close = true;
                 break;
             }
@@ -175,10 +183,8 @@ pub fn optimize_shape(shape: &mut Shape) -> Shape {
     //expected struct `std::boxed::Box<[utils::structs::Point]>`
     //found struct `std::vec::Vec<utils::structs::Point>`
 
-    let output_final = output_points.into_boxed_slice();
-
     Shape {
-        points: output_final,
+        points: output_points.into_boxed_slice(),
         connections: shape.connections.clone(),
     }
 }
