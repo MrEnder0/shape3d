@@ -18,7 +18,11 @@ fn main() -> Result<(), eframe::Error> {
         viewport: egui::ViewportBuilder::default().with_maximized(true),
         ..Default::default()
     };
-    eframe::run_native("3D Shape", options, Box::new(|_cc| Ok(Box::<MyApp>::default())))
+    eframe::run_native(
+        "3D Shape",
+        options,
+        Box::new(|_cc| Ok(Box::<MyApp>::default())),
+    )
 }
 
 struct MyApp {
@@ -124,8 +128,7 @@ impl eframe::App for MyApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             for point in points.iter() {
-                let color = 
-                    ColorCache::get_color(&mut self.color_cache, point.id);
+                let color = ColorCache::get_color(&mut self.color_cache, point.id);
 
                 // Rendering mode 0 (Points)
                 if self.render_mode == 0 {
@@ -207,26 +210,34 @@ impl eframe::App for MyApp {
         egui::Window::new("Options").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.menu_button("Rotation", |ui| {
-                    ui.add(egui::Label::new(format!(
-                        "X: {:.2}",
-                        normalized_rotation.0
-                    )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.0).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
-                    ui.add(egui::Label::new(format!(
-                        "Y: {:.2}",
-                        normalized_rotation.1
-                    )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.1).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
-                    ui.add(egui::Label::new(format!(
-                        "Z: {:.2}",
-                        normalized_rotation.2
-                    )));
-                    ui.add(egui::DragValue::new(&mut self.rotation.2).speed(0.1).max_decimals(2).prefix("Absolute rotation: "));
+                    ui.add(egui::Label::new(format!("X: {:.2}", normalized_rotation.0)));
+                    ui.add(
+                        egui::DragValue::new(&mut self.rotation.0)
+                            .speed(0.1)
+                            .max_decimals(2)
+                            .prefix("Absolute rotation: "),
+                    );
+                    ui.add(egui::Label::new(format!("Y: {:.2}", normalized_rotation.1)));
+                    ui.add(
+                        egui::DragValue::new(&mut self.rotation.1)
+                            .speed(0.1)
+                            .max_decimals(2)
+                            .prefix("Absolute rotation: "),
+                    );
+                    ui.add(egui::Label::new(format!("Z: {:.2}", normalized_rotation.2)));
+                    ui.add(
+                        egui::DragValue::new(&mut self.rotation.2)
+                            .speed(0.1)
+                            .max_decimals(2)
+                            .prefix("Absolute rotation: "),
+                    );
 
                     ui.separator();
 
-                    ui.add(egui::Slider::new(&mut self.max_rotation_volocity, 1.0..=50.0).text("Max Volocity"));
-
+                    ui.add(
+                        egui::Slider::new(&mut self.max_rotation_volocity, 1.0..=50.0)
+                            .text("Max Volocity"),
+                    );
                 });
             });
 
@@ -479,16 +490,16 @@ impl eframe::App for MyApp {
 }
 
 fn handle_rotation_input(ctx: &egui::Context, rotation_velocity: &mut (f64, f64, f64)) {
-    fn handle_rotation_key(ctx: &egui::Context, key: egui::Key, rotation_velocity: &mut f64, negative: bool) {
+    fn handle_rotation_key(
+        ctx: &egui::Context,
+        key: egui::Key,
+        rotation_velocity: &mut f64,
+        negative: bool,
+    ) {
         if ctx.input(|i| i.key_pressed(key)) {
             match negative {
-                true => {
-                    *rotation_velocity -= 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
-                }
-                false => {
-                    *rotation_velocity += 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0
-                }
-                
+                true => *rotation_velocity -= 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0,
+                false => *rotation_velocity += 0.3 * (*rotation_velocity).abs() % 10.0 * 0.5 + 1.0,
             }
         }
     }

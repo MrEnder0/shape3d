@@ -156,9 +156,12 @@ pub fn optimize_shape(shape: &mut Shape) -> Shape {
                 continue;
             }
 
-            if (point.x - second_point.x).abs() < 0.1
+            if ((point.x - second_point.x).abs() < 0.1
                 && (point.y - second_point.y).abs() < 0.1
-                && (point.z - second_point.z).abs() < 0.1
+                && (point.z - second_point.z).abs() < 0.1)
+                || ((second_point.x - point.x).abs() < 0.1
+                    && (second_point.y - point.y).abs() < 0.1
+                    && (second_point.z - point.z).abs() < 0.1)
             {
                 let avg_point = Point {
                     id: point.id,
