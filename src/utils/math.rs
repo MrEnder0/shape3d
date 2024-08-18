@@ -177,17 +177,24 @@ pub fn optimize_shape(shape: &mut Shape) -> Shape {
         }
 
         if !is_close {
-            output_points.push(*point);
+            let rounded_point = Point {
+                id: point.id,
+                x: round_with_precision(point.x, 4),
+                y: round_with_precision(point.y, 4),
+                z: round_with_precision(point.z, 4),
+            };
+
+            output_points.push(rounded_point);
         }
     }
-
-    //shape.points = output_points;
-    //mismatched types
-    //expected struct `std::boxed::Box<[utils::structs::Point]>`
-    //found struct `std::vec::Vec<utils::structs::Point>`
 
     Shape {
         points: output_points.into_boxed_slice(),
         connections: shape.connections.clone(),
     }
+}
+
+fn round_with_precision(x: f64, decimals: u32) -> f64 {
+    let y = 10i32.pow(decimals);
+    (x * y as f64).round() / y as f64
 }
