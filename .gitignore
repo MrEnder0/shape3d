@@ -1,1 +1,5 @@
 /target
+plugins/*/target
+*.exe
+*.dll
+*.pc

@@ -1,10 +1,9 @@
+use shape3d_common::{Point, Shape};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     time::{SystemTime, UNIX_EPOCH},
 };
-
-use super::structs::{Point, Shape};
 
 const Z_OFFSET: f64 = -4.0;
 

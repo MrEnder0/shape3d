@@ -3,11 +3,9 @@ use eframe::{
     epaint::{Color32, FontId, Pos2, Stroke, Vec2},
 };
 use rayon::prelude::*;
+use shape3d_common::*;
 
-use super::{
-    colors::{mix_colors, ColorCache},
-    structs::Shape,
-};
+use super::colors::{mix_colors, ColorCache};
 
 pub fn render_lines(ui: &mut Ui, shape: &Shape, colors: ColorCache, offset: (f32, f32)) {
     let points = shape.points.clone();

@@ -5,13 +5,16 @@ use eframe::{
     emath::Rangef,
     epaint::{Pos2, Vec2},
 };
+use libloading::Library;
 use utils::{
     base_shapes::*,
     colors::ColorCache,
     math::{calc_points_pos, generate_random_number, optimize_shape},
+    plugins::{import_file_ui, is_dynamic_plugin_valid},
     rendering::{dynamic_render_lines, render_lines, render_sides},
-    structs::*,
 };
+
+use shape3d_common::*;
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
@@ -26,6 +29,8 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MyApp {
+    is_startup: bool,
+    file_import_plugin: Option<Library>,
     screen_shape: Shape,
     rotation: (f64, f64, f64),
     rotation_volocity: (f64, f64, f64),
@@ -44,6 +49,8 @@ struct MyApp {
 impl Default for MyApp {
     fn default() -> Self {
         Self {
+            is_startup: true,
+            file_import_plugin: is_dynamic_plugin_valid(),
             screen_shape: base_cube(),
             rotation: (0.0, 0.0, 0.0),
             rotation_volocity: (0.0, 0.0, 0.0),
@@ -63,6 +70,37 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if self.is_startup && std::path::Path::new("shape.txt").exists() {
+            let file = std::fs::read_to_string("shape.txt").unwrap();
+            let mut points: Vec<Point> = Vec::new();
+
+            for line in file.lines() {
+                let mut split = line.split_whitespace();
+                let x = split.next().unwrap().parse::<f64>().unwrap();
+                let y = split.next().unwrap().parse::<f64>().unwrap();
+                let z = split.next().unwrap().parse::<f64>().unwrap();
+
+                points.push(Point {
+                    x,
+                    y,
+                    z,
+                    id: points.len(),
+                });
+            }
+
+            self.base_shape = Shape {
+                points: points.clone().into_boxed_slice(),
+                connections: Box::new([]),
+            };
+
+            self.screen_shape = Shape {
+                points: points.into_boxed_slice(),
+                connections: Box::new([]),
+            };
+
+            self.is_startup = false;
+        }
+
         // Calculates the offset the shape needs to be in the center of the screen
         let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
@@ -475,6 +513,17 @@ impl eframe::App for MyApp {
             });
         });
 
+        let new_shape = import_file_ui(
+            &self.file_import_plugin,
+            ctx.clone(),
+            &mut self.base_shape.clone(),
+        );
+
+        if let Some(shape) = new_shape {
+            self.base_shape = shape.clone();
+            self.screen_shape = shape.clone();
+        }
+
         for point in points_to_remove.iter() {
             self.base_shape.remove_point(*point);
             self.screen_shape.remove_point(*point);
@@ -485,7 +534,13 @@ impl eframe::App for MyApp {
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
-        println!("Goodbye!");
+        let mut save = String::new();
+
+        for point in self.base_shape.points.iter() {
+            save.push_str(&format!("{} {} {}\n", point.x, point.y, point.z));
+        }
+
+        std::fs::write("autosave.pc", save).unwrap();
     }
 }
 

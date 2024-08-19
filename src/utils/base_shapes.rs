@@ -1,4 +1,4 @@
-use super::structs::*;
+use shape3d_common::*;
 
 pub fn base_cube() -> Shape {
     Shape {
