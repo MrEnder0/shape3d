@@ -70,8 +70,8 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if self.is_startup && std::path::Path::new("shape.txt").exists() {
-            let file = std::fs::read_to_string("shape.txt").unwrap();
+        if self.is_startup && std::path::Path::new(&format!("{}autosave.pc", std::env::temp_dir().display())).exists() {
+            let file = std::fs::read_to_string(&format!("{}autosave.pc", std::env::temp_dir().display())).unwrap();
             let mut points: Vec<Point> = Vec::new();
 
             for line in file.lines() {
@@ -540,7 +540,7 @@ impl eframe::App for MyApp {
             save.push_str(&format!("{} {} {}\n", point.x, point.y, point.z));
         }
 
-        std::fs::write("autosave.pc", save).unwrap();
+        std::fs::write(format!("{}autosave.pc", std::env::temp_dir().display()), save).unwrap();
     }
 }
 
