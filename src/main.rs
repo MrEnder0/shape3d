@@ -150,9 +150,7 @@ impl eframe::App for MyApp {
 
         let shape_pos_calcs = calc_points_pos(
             &mut self.screen_shape,
-            normalized_rotation.0,
-            normalized_rotation.1,
-            normalized_rotation.2,
+            normalized_rotation,
             self.base_shape.clone(),
             self.shape_size,
         );

@@ -9,9 +9,7 @@ const Z_OFFSET: f64 = -4.0;
 
 pub fn calc_points_pos(
     screen_shape: &mut Shape,
-    rotation_x: f64,
-    rotation_y: f64,
-    rotation_z: f64,
+    rotation: (f64, f64, f64),
     base_shape: Shape,
     shape_size: f64,
 ) -> (Shape, Shape, Shape) {
@@ -21,9 +19,9 @@ pub fn calc_points_pos(
     let itter_clone = screen_shape.points.clone();
 
     for (i, _point) in itter_clone.iter().enumerate() {
-        let point = rotate_x(&base_shape.points[i], rotation_x);
-        let point = rotate_y(&point, rotation_y);
-        let point = rotate_z(&point, rotation_z);
+        let point = rotate_x(&base_shape.points[i], rotation.0);
+        let point = rotate_y(&point, rotation.1);
+        let point = rotate_z(&point, rotation.2);
 
         screen_shape.points[i].x = point.x;
         screen_shape.points[i].y = point.y;
