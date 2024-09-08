@@ -1,4 +1,5 @@
 /target
+common/target
 plugins/*/target
 *.exe
 *.dll
