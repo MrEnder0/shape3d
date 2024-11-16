@@ -17,8 +17,11 @@ alias c := clean
     cd plugins/file_import; cargo build --release; mv target/release/file_import.dll ../../file_import.dll
 
 [doc('Clean the project')]
-@clean:
-    rm shape3d.exe
-    rm file_import.dll
-    rm autosave.pc
+@clean: cleanbin
     cargo clean
+
+[doc('Cleans the final bins')]
+@cleanbin:
+    if ( Test-Path -path shape3d.exe ) { rm shape3d.exe }
+    if ( Test-Path -path file_import.dll ) { rm file_import.dll }
+    if ( Test-Path -path autosave.pc ) { rm autosave.pc }
