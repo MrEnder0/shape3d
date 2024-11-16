@@ -1,7 +1,7 @@
 mod utils;
 
 use eframe::{
-    egui,
+    egui::{self, Rect},
     emath::Rangef,
     epaint::{Pos2, Vec2},
 };
@@ -70,8 +70,13 @@ impl Default for MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if self.is_startup && std::path::Path::new(&format!("{}autosave.pc", std::env::temp_dir().display())).exists() {
-            let file = std::fs::read_to_string(&format!("{}autosave.pc", std::env::temp_dir().display())).unwrap();
+        if self.is_startup
+            && std::path::Path::new(&format!("{}autosave.pc", std::env::temp_dir().display()))
+                .exists()
+        {
+            let file =
+                std::fs::read_to_string(&format!("{}autosave.pc", std::env::temp_dir().display()))
+                    .unwrap();
             let mut points: Vec<Point> = Vec::new();
 
             for line in file.lines() {
@@ -102,7 +107,10 @@ impl eframe::App for MyApp {
         }
 
         // Calculates the offset the shape needs to be in the center of the screen
-        let window = ctx.input(|i| i.viewport().outer_rect).unwrap();
+        let window = ctx.input(|i| i.viewport().outer_rect).unwrap_or(Rect {
+            min: Pos2 { x: 0.0, y: 0.0 },
+            max: Pos2 { x: 0.0, y: 0.0 },
+        });
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
 
         self.shape_offset = (
@@ -538,7 +546,11 @@ impl eframe::App for MyApp {
             save.push_str(&format!("{} {} {}\n", point.x, point.y, point.z));
         }
 
-        std::fs::write(format!("{}autosave.pc", std::env::temp_dir().display()), save).unwrap();
+        std::fs::write(
+            format!("{}autosave.pc", std::env::temp_dir().display()),
+            save,
+        )
+        .unwrap();
     }
 }
 

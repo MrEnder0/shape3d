@@ -2,7 +2,11 @@ use eframe::egui;
 use libloading::Library;
 use shape3d_common::Shape;
 
-pub fn import_file_ui(loaded_lib: &Option<Library>, ctx: egui::Context, base_shape: &mut Shape) -> Option<Shape> {
+pub fn import_file_ui(
+    loaded_lib: &Option<Library>,
+    ctx: egui::Context,
+    base_shape: &mut Shape,
+) -> Option<Shape> {
     let loaded_lib = match loaded_lib {
         Some(lib) => lib,
         None => return None,
