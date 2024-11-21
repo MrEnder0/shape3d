@@ -21,9 +21,9 @@ pub extern "C" fn import_file_ui(ctx: egui::Context, base_shape: Shape) -> Shape
 
                     for (id, line) in file.lines().enumerate() {
                         let mut split = line.split_whitespace();
-                        let x = split.next().unwrap().parse::<f32>().unwrap();
-                        let y = split.next().unwrap().parse::<f32>().unwrap();
-                        let z = split.next().unwrap().parse::<f32>().unwrap();
+                        let x = split.next().unwrap().parse::<f64>().unwrap();
+                        let y = split.next().unwrap().parse::<f64>().unwrap();
+                        let z = split.next().unwrap().parse::<f64>().unwrap();
 
                         points.push(Point {
                             id,
@@ -49,7 +49,12 @@ pub extern "C" fn import_file_ui(ctx: egui::Context, base_shape: Shape) -> Shape
                         save.push_str(&format!("{} {} {}\n", point.x, point.y, point.z));
                     }
 
-                    std::fs::write(path, save).unwrap();
+                    match std::fs::write(path, save) {
+                        Error => {
+                            // Load logging path and log here
+                        }
+                        _ => {}
+                    }
                 }
             }
         });
