@@ -250,7 +250,6 @@ impl eframe::App for MyApp {
             }
         });
 
-        // Render ui with sliders
         egui::Window::new("Options").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.menu_button("Rotation", |ui| {
