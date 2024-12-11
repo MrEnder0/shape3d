@@ -42,7 +42,7 @@ struct MyApp {
     selected_base_shape_index: usize,
     render_cords: bool,
     shape_offset: (f32, f32),
-    shape_size: f64,
+    shape_size: f32,
     color_cache: ColorCache,
 }
 
@@ -53,7 +53,7 @@ impl Default for MyApp {
             file_import_plugin: is_dynamic_plugin_valid(),
             screen_shape: base_cube(),
             rotation: (0.0, 0.0, 0.0),
-            rotation_volocity: (0.0, 0.0, 0.0),
+            rotation_volocity: (1.8, 1.8, 1.8),
             max_rotation_volocity: 10.0,
             render_mode: 0,
             selected_render_mode: 0,
@@ -114,13 +114,13 @@ impl eframe::App for MyApp {
         let window_size = (window.max.x - window.min.x, window.max.y - window.min.y);
 
         self.shape_offset = (
-            (window_size.0 / 2.0) - (self.shape_size / 2.0) as f32 + self.shape_size as f32 / 2.0,
-            (window_size.1 / 2.0) - (self.shape_size / 2.0) as f32 + self.shape_size as f32 / 2.0,
+            (window_size.0 / 2.0) - (self.shape_size / 2.0) + self.shape_size / 2.0,
+            (window_size.1 / 2.0) - (self.shape_size / 2.0) + self.shape_size / 2.0,
         );
 
         // Detects scroll wheel input for zooming in and out
         if ctx.input(|i| i.raw_scroll_delta.y).abs() > 0.0 {
-            self.shape_size -= ctx.input(|i| i.raw_scroll_delta.y) as f64;
+            self.shape_size -= ctx.input(|i| i.raw_scroll_delta.y);
 
             self.shape_size = self.shape_size.clamp(50.0, 1500.0);
         }
@@ -160,7 +160,7 @@ impl eframe::App for MyApp {
             &mut self.screen_shape,
             normalized_rotation,
             self.base_shape.clone(),
-            self.shape_size,
+            self.shape_size.into(),
         );
 
         self.screen_shape = shape_pos_calcs.0;
