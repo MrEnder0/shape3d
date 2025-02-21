@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod utils;
 
 use eframe::{
@@ -5,12 +7,11 @@ use eframe::{
     emath::Rangef,
     epaint::{Pos2, Vec2},
 };
-use libloading::Library;
 use utils::{
     base_shapes::*,
     colors::ColorCache,
     math::{calc_points_pos, generate_random_number, optimize_shape},
-    plugins::{import_file_ui, is_dynamic_plugin_valid},
+    plugins::{get_available_plugins, import_file_ui, Plugin},
     rendering::{dynamic_render_lines, render_lines, render_sides},
 };
 
@@ -30,7 +31,7 @@ fn main() -> Result<(), eframe::Error> {
 
 struct MyApp {
     is_startup: bool,
-    file_import_plugin: Option<Library>,
+    plugins: Vec<Plugin>,
     screen_shape: Shape,
     rotation: (f64, f64, f64),
     rotation_volocity: (f64, f64, f64),
@@ -50,7 +51,7 @@ impl Default for MyApp {
     fn default() -> Self {
         Self {
             is_startup: true,
-            file_import_plugin: is_dynamic_plugin_valid(),
+            plugins: get_available_plugins(),
             screen_shape: base_cube(),
             rotation: (0.0, 0.0, 0.0),
             rotation_volocity: (1.8, 1.8, 1.8),
@@ -518,15 +519,23 @@ impl eframe::App for MyApp {
             });
         });
 
-        let new_shape = import_file_ui(
-            &self.file_import_plugin,
-            ctx.clone(),
-            &mut self.base_shape.clone(),
-        );
+        // Rewriten plugin rendering
+        //write code that looks threw self.plugins for a plugin struct with the name being file_import and then pass the lib to import_file_ui
+        if let Some(plugin) = self
+            .plugins
+            .iter()
+            .find(|plugin| plugin.name == "file_import")
+        {
+            let new_shape = import_file_ui(
+                plugin.lib.clone(),
+                ctx.clone(),
+                &mut self.base_shape.clone(),
+            );
 
-        if let Some(shape) = new_shape {
-            self.base_shape = shape.clone();
-            self.screen_shape = shape.clone();
+            if let Some(shape) = new_shape {
+                self.base_shape = shape.clone();
+                self.screen_shape = shape.clone();
+            }
         }
 
         for point in points_to_remove.iter() {
