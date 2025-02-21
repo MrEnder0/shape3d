@@ -17,8 +17,8 @@ pub fn get_available_plugins() -> Vec<Plugin> {
             .get_or_init(|| {
                 let mut detected_plugins = Vec::new();
 
-                // File Import Plugin
                 if let Ok(lib) = Library::new("file_import") {
+                    // Try to load a symbol to validate the plugin.
                     if let Ok(_) = {
                         lib.get::<extern "C" fn(egui::Context, Shape) -> Shape>(
                             "import_file_ui".as_bytes(),
@@ -30,9 +30,6 @@ pub fn get_available_plugins() -> Vec<Plugin> {
                         });
                     }
                 }
-
-                // Add more plugins here
-
                 detected_plugins
             })
             .to_vec()
@@ -51,5 +48,18 @@ pub fn import_file_ui(
                 Err(_) => return None,
             };
         Some(import_file_ui(ctx, base_shape.clone()))
+    }
+}
+
+pub fn is_dynamic_plugin_valid() -> Option<Library> {
+    unsafe {
+        let lib = match libloading::Library::new("file_import") {
+            Ok(lib) => lib,
+            Err(_) => return None,
+        };
+        match lib.get::<extern "C" fn(egui::Context, Shape) -> Shape>("import_file_ui".as_bytes()) {
+            Ok(_) => Some(lib),
+            Err(_) => None,
+        }
     }
 }
