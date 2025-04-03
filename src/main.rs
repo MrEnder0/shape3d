@@ -53,7 +53,7 @@ impl Default for MyApp {
             is_startup: true,
             plugins: get_available_plugins(),
             screen_shape: base_cube(),
-            rotation: (0.0, 0.0, 0.0),
+            rotation: (-90.0, -90.0, -90.0),
             rotation_volocity: (1.8, 1.8, 1.8),
             max_rotation_volocity: 10.0,
             render_mode: 0,
@@ -577,10 +577,10 @@ fn handle_rotation_input(ctx: &egui::Context, rotation_velocity: &mut (f64, f64,
         }
     }
 
-    handle_rotation_key(ctx, egui::Key::ArrowUp, &mut rotation_velocity.0, false);
-    handle_rotation_key(ctx, egui::Key::ArrowDown, &mut rotation_velocity.0, true);
-    handle_rotation_key(ctx, egui::Key::ArrowLeft, &mut rotation_velocity.1, false);
-    handle_rotation_key(ctx, egui::Key::ArrowRight, &mut rotation_velocity.1, true);
+    handle_rotation_key(ctx, egui::Key::W, &mut rotation_velocity.0, false);
+    handle_rotation_key(ctx, egui::Key::S, &mut rotation_velocity.0, true);
+    handle_rotation_key(ctx, egui::Key::A, &mut rotation_velocity.1, false);
+    handle_rotation_key(ctx, egui::Key::D, &mut rotation_velocity.1, true);
     handle_rotation_key(ctx, egui::Key::Q, &mut rotation_velocity.2, false);
     handle_rotation_key(ctx, egui::Key::E, &mut rotation_velocity.2, true);
 }
