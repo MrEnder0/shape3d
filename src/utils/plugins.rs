@@ -51,6 +51,7 @@ pub fn import_file_ui(
     }
 }
 
+#[allow(dead_code)]
 pub fn is_dynamic_plugin_valid() -> Option<Library> {
     unsafe {
         let lib = match libloading::Library::new("file_import") {
