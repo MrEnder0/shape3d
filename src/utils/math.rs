@@ -83,7 +83,7 @@ pub fn calc_point_visibility(point: &Point, shape: &Shape) -> bool {
 
 pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
     struct ClosestPoints {
-        id: usize,
+        id: u32,
         distance: f64,
     }
 
@@ -116,7 +116,8 @@ pub fn calc_closest_points(base_point: &Point, shape: &Shape) -> Vec<Point> {
     let closest_points = distances
         .iter()
         .take(3)
-        .map(|p| shape.points[p.id])
+        .filter_map(|p| shape.points.iter().find(|pt| pt.id == p.id))
+        .cloned()
         .collect();
 
     closest_points

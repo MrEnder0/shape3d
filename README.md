@@ -46,3 +46,6 @@ To develop a plugin for Shape3D, follow these steps:
 3. Write a linker function inside the plugins.rs to explain input and outputs
 4. Compile the library and place the resulting `.dll` or `.so` file in the appropriate directory.
 5. Shape3D will automatically detect and load the plugin if it meets the required interface.
+
+## TODO:
+[ ] Rework rotation to work based off current orientation

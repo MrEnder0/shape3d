@@ -4,17 +4,18 @@ pub struct Shape {
 }
 
 #[derive(Clone, PartialEq, Copy)]
+#[repr(align(32))]
 pub struct Point {
     pub x: f64,
     pub y: f64,
     pub z: f64,
-    pub id: usize,
+    pub id: u32,
 }
 
 #[derive(Clone, PartialEq, Copy)]
 pub struct Connection {
-    pub point1: usize,
-    pub point2: usize,
+    pub point1: u32,
+    pub point2: u32,
 }
 
 impl Clone for Shape {
@@ -27,18 +28,18 @@ impl Clone for Shape {
 }
 
 pub trait RemovePoint {
-    fn remove_point(&mut self, point: usize);
+    fn remove_point(&mut self, point: u32);
 }
 
 impl RemovePoint for Shape {
-    fn remove_point(&mut self, point: usize) {
+    fn remove_point(&mut self, point: u32) {
         self.points = self
             .points
             .clone()
             .to_vec()
             .iter()
             .enumerate()
-            .filter(|(i, _p)| *i != point)
+            .filter(|(_i, p)| p.id != point)
             .map(|(_i, p)| *p)
             .collect::<Box<[Point]>>();
 

@@ -90,7 +90,7 @@ impl eframe::App for MyApp {
                     x,
                     y,
                     z,
-                    id: points.len(),
+                    id: points.len() as u32,
                 });
             }
 
@@ -173,7 +173,7 @@ impl eframe::App for MyApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             for point in points.iter() {
-                let color = ColorCache::get_color(&mut self.color_cache, point.id);
+                let color = ColorCache::get_color(&mut self.color_cache, point.id as u32);
 
                 // Rendering mode 0 (Points)
                 if self.render_mode == 0 {
@@ -287,18 +287,18 @@ impl eframe::App for MyApp {
 
             ui.menu_button("Rendering Mode", |ui| {
                 let points_button =
-                    ui.add(egui::SelectableLabel::new(self.render_mode == 0, "Points"));
+                    ui.add(egui::Button::selectable(self.render_mode == 0, "Points"));
                 let pre_defined_lines = ui.add_enabled(
                     !matches!(self.base_shape_index, 3),
-                    egui::SelectableLabel::new(self.render_mode == 1, "Pre-Defined Lines"),
+                    egui::Button::selectable(self.render_mode == 1, "Pre-Defined Lines"),
                 );
-                let dynamic_lines = ui.add(egui::SelectableLabel::new(
+                let dynamic_lines = ui.add(egui::Button::selectable(
                     self.render_mode == 2,
                     "Dynamic Lines",
                 ));
                 let experiment_one_button = ui.add_enabled(
                     !matches!(self.base_shape_index, 3),
-                    egui::SelectableLabel::new(self.render_mode == 3, "Experiment 1"),
+                    egui::Button::selectable(self.render_mode == 3, "Experiment 1"),
                 );
 
                 if points_button.clicked() {
@@ -466,13 +466,13 @@ impl eframe::App for MyApp {
                                     x: generate_random_number(200) as f64 * 0.01 - 1.0,
                                     y: generate_random_number(200) as f64 * 0.01 - 1.0,
                                     z: generate_random_number(200) as f64 * 0.01 - 1.0,
-                                    id: self.base_shape.points.len(),
+                                    id: self.base_shape.points.len() as u32,
                                 });
                                 self.screen_shape.add_point(Point {
                                     x: 0.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    id: self.base_shape.points.len(),
+                                    id: self.base_shape.points.len() as u32,
                                 });
                             }
 
@@ -494,13 +494,13 @@ impl eframe::App for MyApp {
                         x: generate_random_number(200) as f64 * 0.01 - 1.0,
                         y: generate_random_number(200) as f64 * 0.01 - 1.0,
                         z: generate_random_number(200) as f64 * 0.01 - 1.0,
-                        id: self.base_shape.points.len(),
+                        id: self.base_shape.points.len() as u32,
                     });
                     self.screen_shape.add_point(Point {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        id: self.base_shape.points.len(),
+                        id: self.base_shape.points.len() as u32,
                     });
                     self.selected_base_shape_index = 5;
                 }
@@ -539,8 +539,8 @@ impl eframe::App for MyApp {
         }
 
         for point in points_to_remove.iter() {
-            self.base_shape.remove_point(*point);
-            self.screen_shape.remove_point(*point);
+            self.base_shape.remove_point(*point as u32);
+            self.screen_shape.remove_point(*point as u32);
         }
 
         std::thread::sleep(std::time::Duration::from_millis(10));

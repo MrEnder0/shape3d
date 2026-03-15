@@ -14,13 +14,15 @@ impl ColorCache {
         }
     }
 
-    pub fn get_color(&mut self, id: usize) -> egui::Color32 {
-        if let std::collections::hash_map::Entry::Vacant(e) = self.colors.entry(id) {
+    pub fn get_color(&mut self, id: u32) -> egui::Color32 {
+        if let std::collections::hash_map::Entry::Vacant(e) =
+            self.colors.entry(id.try_into().unwrap())
+        {
             let color = gen_color();
             e.insert(color);
             color
         } else {
-            self.colors[&id]
+            self.colors[&(id as usize)]
         }
     }
 
